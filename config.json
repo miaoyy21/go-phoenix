@@ -1,0 +1,7 @@
+{
+  "level": "trace",
+  "aesKey": "fbe666591f898dae5b7b2110b27b0e00",
+  "aesIv": "3738f85acef6060516668bec263c94aa",
+  "dbDriver": "mysql",
+  "dbDataSource": "root:root@tcp(127.0.0.1:3306)/phoenix?charset=utf8mb4&collation=utf8mb4_general_ci&loc=Local&parseTime=true"
+}

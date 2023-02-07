@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"math/rand"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -57,7 +57,7 @@ func (cfg config) AesStream(src []byte) []byte {
 func InitConfig(dir string) error {
 
 	// 获取配置文件
-	bytes, err := ioutil.ReadFile(filepath.Join(dir, "config.json"))
+	bytes, err := os.ReadFile(filepath.Join(dir, "config.json"))
 	if err != nil {
 		return err
 	}
