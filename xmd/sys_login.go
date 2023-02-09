@@ -1,18 +1,14 @@
 package xmd
 
 import (
-	"crypto/md5"
 	"database/sql"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type SysLogin struct {
@@ -73,45 +69,19 @@ func (m *SysLogin) PostByPassword(tx *sql.Tx, ctx *handle.Context) (interface{},
 		return nil, errors.New("登录密码不正确")
 	}
 
-	src := make([]string, 0, 3)
-
-	// 0 用户ID
-	src = append(src, userId)
-
-	// 1 附加信息
-	ext := fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", ctx.UserAgent(), uPwd, userCode, userName, departId, departCode, departName)
-	md5Ext := md5.Sum([]byte(ext))
-	src = append(src, base64.StdEncoding.EncodeToString(md5Ext[:]))
-
 	// 获取设定的有效时限
-	var e0 string
+	var sExpire string
 
 	query = "SELECT value_ FROM sys_setting WHERE field_ = ?"
-	if err := asql.SelectRow(tx, query, "token_expire").Scan(&e0); err != nil {
+	if err := asql.SelectRow(tx, query, "token_expire").Scan(&sExpire); err != nil {
 		return nil, err
 	}
 
-	e1, err := strconv.ParseInt(e0, 10, 64)
+	iExpire, err := strconv.ParseInt(sExpire, 10, 64)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2 失效时间
-	expire := strconv.FormatInt(time.Now().Add(time.Duration(e1)*time.Second).Unix(), 10)
-	src = append(src, expire)
-
-	bytes := base.Config.AesStream([]byte(strings.Join(src, ",")))
-	res := map[string]string{
-		"status":      "success",
-		"token":       base64.StdEncoding.EncodeToString(bytes),
-		"user_id":     userId,
-		"user_code":   userCode,
-		"user_name":   userName,
-		"depart_id":   departId,
-		"depart_code": departCode,
-		"depart_name": departName,
-		"expire":      expire,
-	}
-
+	res := base.GenerateToken(userId, userCode, userName, departId, departCode, departName, uPwd, ctx.UserAgent(), iExpire)
 	return res, nil
 }
