@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string, error) {
+func Select(tx *sql.Tx, query string, args ...any) ([]map[string]string, error) {
 	logrus.Debugf("Select SQL with Arguments [%s] %s", Arguments(args...), query)
 
 	// Rows

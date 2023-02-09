@@ -32,7 +32,7 @@ func Delete(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{
 	ret := make(map[string]interface{})
 
 	// 除了删除自身，也要删除其子节点
-	news, err := asql.QueryChildren(tx, table, ids)
+	news, err := asql.QueryRelationChildren(tx, table, ids)
 	if err != nil {
 		logrus.Panic(err)
 	}
