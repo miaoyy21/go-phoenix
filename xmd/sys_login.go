@@ -2,7 +2,6 @@ package xmd
 
 import (
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"go-phoenix/asql"
@@ -98,14 +97,12 @@ func (m *SysLogin) PostByPassword(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// 密码比较
-	ePwd := base.Config.AesStream([]byte(password))
-	if !strings.EqualFold(uPwd, hex.EncodeToString(ePwd)) {
+	if !strings.EqualFold(uPwd, base.Config.AesEncodeString(password)) {
 		return nil, errors.New("登录密码不正确")
 	}
 
 	// 获取设定的有效时限
 	var sExpire string
-
 	query = "SELECT value_ FROM sys_setting WHERE field_ = ?"
 	if err := asql.SelectRow(tx, query, "token_expire").Scan(&sExpire); err != nil {
 		return nil, err

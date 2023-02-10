@@ -54,6 +54,19 @@ func (cfg config) AesStream(src []byte) []byte {
 	return dst
 }
 
+func (cfg config) AesEncodeString(src string) string {
+	return hex.EncodeToString(cfg.AesStream([]byte(src)))
+}
+
+func (cfg config) AesDecodeString(dst string) (src string, err error) {
+	eSrc, err := hex.DecodeString(dst)
+	if err != nil {
+		return src, err
+	}
+
+	return string(Config.AesStream(eSrc)), nil
+}
+
 func InitConfig(dir string) error {
 
 	// 获取配置文件
