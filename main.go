@@ -58,7 +58,7 @@ func main() {
 
 	http.Handle("/api/sys/login", handle.Handler(db, &xmd.SysLogin{}))     // 登录
 	http.Handle("/api/sys/setting", handle.Handler(db, &xmd.SysSetting{})) // 系统设置
-	//http.Handle("/api/sys/roles", handle.Handler(db, &xmd.SysRoles{}))                          // 角色
+	http.Handle("/api/sys/roles", handle.Handler(db, &xmd.SysRoles{}))     // 角色
 	http.Handle("/api/sys/departs", handle.Handler(db, &xmd.SysDeparts{})) // 部门
 	http.Handle("/api/sys/users", handle.Handler(db, &xmd.SysUsers{}))     // 用户
 	//http.Handle("/api/sys/tables", handle.Handler(db, &xmd.SysTables{}))                        // 数据库表
@@ -72,7 +72,7 @@ func main() {
 	//http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xmd.SysAutoNoItems{}))            // 自动编码项
 	//http.Handle("/api/sys/menus", handle.Handler(db, &xmd.SysMenus{}))                          // 菜单
 	//http.Handle("/api/sys/role_menus", handle.Handler(db, &xmd.SysRoleMenus{}))                 // 角色关联菜单
-	//http.Handle("/api/sys/organization_roles", handle.Handler(db, &xmd.SysOrganizationRoles{})) // 组织关联角色
+	http.Handle("/api/sys/organization_roles", handle.Handler(db, &xmd.SysOrganizationRoles{})) // 组织关联角色
 	//http.Handle("/api/sys/permissions", handle.Handler(db, &xmd.SysPermissions{}))              // 权限查询
 	//http.Handle("/api/sys/operate_logs", handle.Handler(db, &xmd.SysOperateLogs{}))             // 操作日志
 	//http.Handle("/api/sys/ui_widget", handle.Handler(db, &xmd.SysUIWidget{}))                   // UI组件设计

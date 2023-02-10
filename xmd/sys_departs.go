@@ -5,18 +5,49 @@ import (
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
+	"strings"
 )
 
 type SysDeparts struct {
 }
 
 func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	query := `
-		SELECT id, code_, name_, parent_id_, valid_, description_
-		FROM sys_depart
-		ORDER BY order_ ASC
-	`
-	res, err := asql.Select(tx, query)
+	parentId := ctx.FormValue("parent_id")
+	scope := ctx.FormValue("scope")
+
+	query, args := "invalid", make([]interface{}, 0)
+	if strings.EqualFold(scope, "KIDS") {
+		if len(parentId) > 0 {
+			query = `
+			SELECT T.id, T.code_, T.name_, 'depart' AS type_,
+				CASE WHEN EXISTS (SELECT 1 FROM sys_depart X WHERE X.parent_id_ = T.id) 
+					OR EXISTS (SELECT 1 FROM sys_user X WHERE X.depart_id_ = T.id) THEN '1' ELSE '0' END AS kids_
+			FROM sys_depart T
+			WHERE T.parent_id_ = ?
+				UNION ALL
+			SELECT T.id, T.user_code_ AS code_, T.user_name_ AS name_, 'user' AS type_,'0' AS kids_
+			FROM sys_user T
+			WHERE T.depart_id_ = ?
+		`
+			args = append(args, parentId, parentId)
+		} else {
+			query = `
+			SELECT T.id, T.code_, T.name_, 'depart' AS type_,
+				CASE WHEN EXISTS (SELECT 1 FROM sys_depart X WHERE X.parent_id_ = T.id) 
+					OR EXISTS (SELECT 1 FROM sys_user X WHERE X.depart_id_ = T.id) THEN '1' ELSE '0' END AS kids_
+			FROM sys_depart T
+			WHERE T.parent_id_ IS NULL
+			ORDER BY T.order_ ASC
+			`
+		}
+	} else {
+		query = `
+			SELECT id, code_, name_, parent_id_, valid_, description_
+			FROM sys_depart
+			ORDER BY order_ ASC
+		`
+	}
+	res, err := asql.Select(tx, query, args...)
 	if err != nil {
 		return nil, err
 	}
