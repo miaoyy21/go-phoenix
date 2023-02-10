@@ -36,8 +36,6 @@ func (m *SysLogin) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 }
 
 func (m *SysLogin) GetByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	// 获取用户的菜单
-	// id,menu_,name_,parent_id_,icon_
 
 	// 获取用户的部门ID
 	departIds, err := asql.QueryRelationParents(tx, "sys_depart", ctx.GetDepartId())

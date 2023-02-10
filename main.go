@@ -59,8 +59,8 @@ func main() {
 	http.Handle("/api/sys/login", handle.Handler(db, &xmd.SysLogin{}))     // 登录
 	http.Handle("/api/sys/setting", handle.Handler(db, &xmd.SysSetting{})) // 系统设置
 	//http.Handle("/api/sys/roles", handle.Handler(db, &xmd.SysRoles{}))                          // 角色
-	//http.Handle("/api/sys/departs", handle.Handler(db, &xmd.SysDeparts{}))                      // 部门
-	http.Handle("/api/sys/users", handle.Handler(db, &xmd.SysUsers{})) // 用户
+	http.Handle("/api/sys/departs", handle.Handler(db, &xmd.SysDeparts{})) // 部门
+	http.Handle("/api/sys/users", handle.Handler(db, &xmd.SysUsers{}))     // 用户
 	//http.Handle("/api/sys/tables", handle.Handler(db, &xmd.SysTables{}))                        // 数据库表
 	//http.Handle("/api/sys/table_columns", handle.Handler(db, &xmd.SysTableColumns{}))           // 数据库表字段
 	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xmd.SysTableForeignKeys{}))  // 数据库表外键
