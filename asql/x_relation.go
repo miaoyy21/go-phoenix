@@ -43,6 +43,10 @@ func QueryRelationParents(tx *sql.Tx, table string, id string) ([]interface{}, e
 	var parentId sql.NullString
 
 	if err := SelectRow(tx, fmt.Sprintf("SELECT parent_id_ FROM %s WHERE id = ? ", table), id).Scan(&parentId); err != nil {
+		if err == sql.ErrNoRows {
+			return make([]interface{}, 0), nil
+		}
+
 		return nil, err
 	}
 

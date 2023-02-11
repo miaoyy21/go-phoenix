@@ -47,6 +47,36 @@ func (o *SysOrganizationRoles) Get(tx *sql.Tx, ctx *handle.Context) (interface{}
 	return res, nil
 }
 
+func (o *SysOrganizationRoles) GetPermissions(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	orgId := ctx.FormValue("organization_id")
+
+	var departId string
+
+	sOrg := make([]interface{}, 0, 7)
+	if err := asql.SelectRow(tx, "SELECT depart_id_ FROM sys_user WHERE id = ?", orgId).Scan(&departId); err != nil {
+		if err == sql.ErrNoRows {
+			// 说明查询部门的权限菜单
+			org, err := asql.QueryRelationParents(tx, "sys_depart", orgId)
+			if err != nil {
+				return nil, err
+			}
+
+			sOrg = append(sOrg, org...)
+		}
+	} else {
+		// 说明查询用户的权限菜单
+		org, err := asql.QueryRelationParents(tx, "sys_depart", departId)
+		if err != nil {
+			return nil, err
+		}
+
+		sOrg = append(sOrg, orgId)
+		sOrg = append(sOrg, org...)
+	}
+
+	return menusByOrg(tx, sOrg...)
+}
+
 func (o *SysOrganizationRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	operation := ctx.PostFormValue("operation")
 
@@ -144,7 +174,7 @@ func (o *SysOrganizationRoles) PostPatchOrganization(tx *sql.Tx, ctx *handle.Con
 			}
 
 			// 删除原有的组织权限
-			dQuery := fmt.Sprintf("DELETE FROM sys_organization_role WHERE role_id_ = ? AND organization_id_ IN(?%s)", strings.Repeat(",?", len(org)-1))
+			dQuery := fmt.Sprintf("DELETE FROM sys_organization_role WHERE role_id_ = ? AND organization_id_ IN(?%s)", strings.Repeat(", ?", len(org)-1))
 			if err := asql.Delete(tx, dQuery, args...); err != nil {
 				return nil, err
 			}
