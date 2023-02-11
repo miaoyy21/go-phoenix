@@ -19,15 +19,19 @@ func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	if strings.EqualFold(scope, "KIDS") {
 		if len(parentId) > 0 {
 			query = `
-			SELECT T.id, T.code_, T.name_, 'depart' AS type_,
-				CASE WHEN EXISTS (SELECT 1 FROM sys_depart X WHERE X.parent_id_ = T.id) 
-					OR EXISTS (SELECT 1 FROM sys_user X WHERE X.depart_id_ = T.id) THEN '1' ELSE '0' END AS kids_
-			FROM sys_depart T
-			WHERE T.parent_id_ = ?
-				UNION ALL
-			SELECT T.id, T.user_code_ AS code_, T.user_name_ AS name_, 'user' AS type_,'0' AS kids_
-			FROM sys_user T
-			WHERE T.depart_id_ = ?
+			SELECT *
+			FROM (
+				SELECT T.id, T.code_, T.name_, T.order_, 'depart' AS type_,
+					CASE WHEN EXISTS (SELECT 1 FROM sys_depart X WHERE X.parent_id_ = T.id) 
+						OR EXISTS (SELECT 1 FROM sys_user X WHERE X.depart_id_ = T.id) THEN '1' ELSE '0' END AS kids_
+				FROM sys_depart T
+				WHERE T.parent_id_ = ?
+					UNION ALL
+				SELECT T.id, T.user_code_, T.user_name_, T.order_, 'user','0'
+				FROM sys_user T
+				WHERE T.depart_id_ = ?
+			) TX
+			ORDER BY type_ ASC, order_ ASC
 		`
 			args = append(args, parentId, parentId)
 		} else {

@@ -2,6 +2,7 @@ package xmd
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
@@ -81,4 +82,30 @@ func (o *SysOrganizationRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{
 	//}
 
 	return nil, fmt.Errorf("unrecognizable operation %s ", operation)
+}
+
+func (o *SysOrganizationRoles) PostPatchRoles(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	organizationId := ctx.PostFormValue("organization_id")
+	sRoles := ctx.PostFormValue("roles")
+
+	var roles []string
+	if err := json.Unmarshal([]byte(sRoles), &roles); err != nil {
+		return nil, err
+	}
+
+	// 删除原有的组织权限
+	dQuery := "DELETE FROM sys_organization_role WHERE organization_id_ = ?"
+	if err := asql.Delete(tx, dQuery, organizationId); err != nil {
+		return nil, err
+	}
+
+	// 添加新的组织权限
+	iQuery := "INSERT INTO sys_organization_role(id, organization_id_, role_id_, create_at_) VALUES (?,?,?,?)"
+	for _, role := range roles {
+		if err := asql.Insert(tx, iQuery, asql.GenerateId(), organizationId, role, asql.GetNow()); err != nil {
+			return nil, err
+		}
+	}
+
+	return map[string]interface{}{"status": "success"}, nil
 }
