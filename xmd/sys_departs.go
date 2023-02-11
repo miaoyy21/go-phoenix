@@ -19,14 +19,14 @@ func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	if strings.EqualFold(scope, "KIDS") {
 		if len(parentId) > 0 {
 			query = `
-			SELECT *
+			SELECT id, code_, name_, type_, kids_
 			FROM (
 				SELECT T.id, T.code_, T.name_, T.order_, 'depart' AS type_,
 					CASE WHEN EXISTS (SELECT 1 FROM sys_depart X WHERE X.parent_id_ = T.id) 
 						OR EXISTS (SELECT 1 FROM sys_user X WHERE X.depart_id_ = T.id) THEN '1' ELSE '0' END AS kids_
 				FROM sys_depart T
 				WHERE T.parent_id_ = ?
-					UNION ALL
+				UNION ALL
 				SELECT T.id, T.user_code_, T.user_name_, T.order_, 'user','0'
 				FROM sys_user T
 				WHERE T.depart_id_ = ?
@@ -44,6 +44,20 @@ func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			ORDER BY T.order_ ASC
 			`
 		}
+	} else if strings.EqualFold(scope, "ORGANIZATION") {
+		query = `
+			SELECT id, name_, type_, parent_name_
+			FROM (
+				SELECT T.id, T.name_, T.order_, 'depart' AS type_, CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END AS parent_name_
+				FROM sys_depart T
+					LEFT JOIN sys_depart X ON T.parent_id_ = X.id
+				UNION ALL
+				SELECT T.id, T.user_name_, T.order_, 'user', CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END
+				FROM sys_user T
+					LEFT JOIN sys_depart X ON T.depart_id_ = X.id
+			) TX
+			ORDER BY type_ ASC, order_ ASC
+		`
 	} else {
 		query = `
 			SELECT id, code_, name_, parent_id_, valid_, description_
