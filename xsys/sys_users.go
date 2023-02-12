@@ -1,4 +1,4 @@
-package xmd
+package xsys
 
 import (
 	"database/sql"

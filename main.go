@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-phoenix/base"
-	"go-phoenix/xmd"
+	"go-phoenix/xsys"
 	"os"
 	"runtime"
 
@@ -56,28 +56,27 @@ func main() {
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("assets")))
 
-	http.Handle("/api/sys/login", handle.Handler(db, &xmd.SysLogin{}))     // 登录
-	http.Handle("/api/sys/setting", handle.Handler(db, &xmd.SysSetting{})) // 系统设置
-	http.Handle("/api/sys/roles", handle.Handler(db, &xmd.SysRoles{}))     // 角色
-	http.Handle("/api/sys/departs", handle.Handler(db, &xmd.SysDeparts{})) // 部门
-	http.Handle("/api/sys/users", handle.Handler(db, &xmd.SysUsers{}))     // 用户
-	//http.Handle("/api/sys/tables", handle.Handler(db, &xmd.SysTables{}))                        // 数据库表
-	//http.Handle("/api/sys/table_columns", handle.Handler(db, &xmd.SysTableColumns{}))           // 数据库表字段
-	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xmd.SysTableForeignKeys{}))  // 数据库表外键
-	//http.Handle("/api/sys/table_indexes", handle.Handler(db, &xmd.SysTableIndexes{}))           // 数据库表索引
-	//http.Handle("/api/sys/dict_kinds", handle.Handler(db, &xmd.SysDictKinds{}))                 // 数据字典
-	http.Handle("/api/sys/dict_items", handle.Handler(db, &xmd.SysDictItems{})) // 数据字典项
-	//http.Handle("/api/sys/auto_nos", handle.Handler(db, &xmd.SysAutoNos{}))                     // 数据字典项
-	//http.Handle("/api/sys/auto_no_kinds", handle.Handler(db, &xmd.SysAutoNoKinds{}))            // 自动编码
-	//http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xmd.SysAutoNoItems{}))            // 自动编码项
-	//http.Handle("/api/sys/menus", handle.Handler(db, &xmd.SysMenus{}))                          // 菜单
-	//http.Handle("/api/sys/role_menus", handle.Handler(db, &xmd.SysRoleMenus{}))                 // 角色关联菜单
-	http.Handle("/api/sys/organization_roles", handle.Handler(db, &xmd.SysOrganizationRoles{})) // 组织关联角色
-	//http.Handle("/api/sys/permissions", handle.Handler(db, &xmd.SysPermissions{}))              // 权限查询
-	//http.Handle("/api/sys/operate_logs", handle.Handler(db, &xmd.SysOperateLogs{}))             // 操作日志
-	//http.Handle("/api/sys/ui_widget", handle.Handler(db, &xmd.SysUIWidget{}))                   // UI组件设计
-	//http.Handle("/api/sys/data_service", handle.Handler(db, &xmd.SysDataService{}))             // 用户数据服务
-	//http.Handle("/api/sys/docs", handle.Handler(db, &xmd.SysDocs{}))                            // 文档
+	http.Handle("/api/sys/login", handle.Handler(db, &xsys.SysLogin{}))                // 登录
+	http.Handle("/api/sys/setting", handle.Handler(db, &xsys.SysSetting{}))            // 系统设置
+	http.Handle("/api/sys/roles", handle.Handler(db, &xsys.SysRoles{}))                // 角色
+	http.Handle("/api/sys/departs", handle.Handler(db, &xsys.SysDeparts{}))            // 部门
+	http.Handle("/api/sys/users", handle.Handler(db, &xsys.SysUsers{}))                // 用户
+	http.Handle("/api/sys/tables", handle.Handler(db, &xsys.SysTables{}))              // 数据库表
+	http.Handle("/api/sys/table_columns", handle.Handler(db, &xsys.SysTableColumns{})) // 数据库表字段
+	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xsys.SysTableForeignKeys{}))  // 数据库表外键
+	//http.Handle("/api/sys/table_indexes", handle.Handler(db, &xsys.SysTableIndexes{}))           // 数据库表索引
+	//http.Handle("/api/sys/dict_kinds", handle.Handler(db, &xsys.SysDictKinds{}))                 // 数据字典
+	http.Handle("/api/sys/dict_items", handle.Handler(db, &xsys.SysDictItems{})) // 数据字典项
+	//http.Handle("/api/sys/auto_nos", handle.Handler(db, &xsys.SysAutoNos{}))                     // 数据字典项
+	//http.Handle("/api/sys/auto_no_kinds", handle.Handler(db, &xsys.SysAutoNoKinds{}))            // 自动编码
+	//http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xsys.SysAutoNoItems{}))            // 自动编码项
+	//http.Handle("/api/sys/menus", handle.Handler(db, &xsys.SysMenus{}))                          // 菜单
+	//http.Handle("/api/sys/role_menus", handle.Handler(db, &xsys.SysRoleMenus{}))                 // 角色关联菜单
+	http.Handle("/api/sys/organization_roles", handle.Handler(db, &xsys.SysOrganizationRoles{})) // 组织关联角色
+	//http.Handle("/api/sys/operate_logs", handle.Handler(db, &xsys.SysOperateLogs{}))             // 操作日志
+	//http.Handle("/api/sys/ui_widget", handle.Handler(db, &xsys.SysUIWidget{}))                   // UI组件设计
+	//http.Handle("/api/sys/data_service", handle.Handler(db, &xsys.SysDataService{}))             // 用户数据服务
+	//http.Handle("/api/sys/docs", handle.Handler(db, &xsys.SysDocs{}))                            // 文档
 
 	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{})) // 流程图
 	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))       // 流程执行

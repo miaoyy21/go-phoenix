@@ -40,16 +40,16 @@ func Arguments(args ...interface{}) string {
 	ss := make([]string, 0, len(args))
 
 	for _, arg := range args {
-		if s, ok := arg.(string); ok {
-			ss = append(ss, fmt.Sprintf("%q", s))
-		} else if i, ok := arg.(int); ok {
-			ss = append(ss, fmt.Sprintf("%d", i))
-		} else if f, ok := arg.(float64); ok {
-			ss = append(ss, fmt.Sprintf("%f", f))
-		} else {
+		switch arg.(type) {
+		case string:
+			ss = append(ss, fmt.Sprintf("%q", arg))
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+			ss = append(ss, fmt.Sprintf("%d", arg))
+		case float32, float64:
+			ss = append(ss, fmt.Sprintf("%f", arg))
+		default:
 			ss = append(ss, fmt.Sprintf("%#v<%T>", arg, arg))
 		}
-
 	}
 
 	return strings.Join(ss, " , ")
