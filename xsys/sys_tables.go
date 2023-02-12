@@ -134,9 +134,6 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		return nil, err
 	}
 
-	// 表是否存在
-	exists := o.exists(tx, table)
-
 	// 查询所有列
 	res, err := asql.Select(tx, "SELECT code_, type_ FROM sys_table_column WHERE table_id_ = ? ORDER BY order_ ASC", id)
 	if err != nil {
@@ -149,6 +146,9 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 	}
 
 	buf := new(bytes.Buffer)
+
+	// 表是否存在
+	exists := o.exists(tx, table)
 	if !exists {
 		// 创建数据库表
 		buf.WriteString(fmt.Sprintf("\n CREATE TABLE %s ( \n", table))
