@@ -35,9 +35,7 @@ func (node *NodeExecute) CustomExecutors(scope []string) (map[string]string, err
 
 		// 返回
 		if len(res) > 0 {
-			users, _ := base.ResAsMapSlice(res, true, "executor_user_id_", "executor_user_name_")
-
-			return users, nil
+			return base.ResAsMap(res, true, "executor_user_id_", "executor_user_name_"), nil
 		}
 	}
 

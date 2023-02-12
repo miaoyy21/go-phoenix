@@ -7,6 +7,30 @@ import (
 	"strings"
 )
 
+func ResAsMap(res []map[string]string, sensitive bool, k string, v string) map[string]string {
+	ms := make(map[string]string)
+
+	for _, row := range res {
+		key, ok := row[k]
+		if !ok {
+			logrus.Panicf("arguments ResAsMapSlice's Map Must has key field %q .", k)
+		}
+
+		value, ok := row[v]
+		if !ok {
+			logrus.Panicf("arguments ResAsMapSlice's Map Must has Value field %q .", v)
+		}
+
+		if sensitive {
+			ms[key] = value
+		} else {
+			ms[strings.ToLower(key)] = strings.ToLower(value)
+		}
+	}
+
+	return ms
+}
+
 func ResAsMapSlice(res []map[string]string, sensitive bool, k string, v string) (map[string]string, []string) {
 	ms, ss := make(map[string]string), make([]string, 0, len(res))
 

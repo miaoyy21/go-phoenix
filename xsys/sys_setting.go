@@ -16,8 +16,7 @@ func (m *SysSetting) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	newRes, _ := base.ResAsMapSlice(res, true, "field_", "value_")
-	return newRes, nil
+	return base.ResAsMap(res, true, "field_", "value_"), nil
 }
 
 func (m *SysSetting) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
