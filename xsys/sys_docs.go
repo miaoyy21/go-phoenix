@@ -52,7 +52,6 @@ func (o *SysDocs) PostUpload(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 	mime := head.Header.Get("Content-Type")
 	size := head.Size
 	name := head.Filename
-	//
 	docId := asql.GenerateId()
 
 	// 随机生成2个16进制目录
