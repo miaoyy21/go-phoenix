@@ -16,6 +16,7 @@ type Pagination struct {
 	sorts   []string
 	filters []string
 
+	// 直接导出为JSON
 	Pos        int                 `json:"pos"`
 	TotalCount int                 `json:"total_count"`
 	Data       []map[string]string `json:"data"`
