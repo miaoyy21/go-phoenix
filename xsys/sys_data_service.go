@@ -6,16 +6,55 @@ import (
 	"go-phoenix/asql"
 	"go-phoenix/handle"
 	"go-phoenix/rujs"
+	"strings"
 )
 
 type SysDataService struct {
+}
+
+func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	service := ctx.FormValue("service")
+	sService := strings.Split(service, ".")
+	if len(sService) != 2 {
+		return nil, fmt.Errorf("invalid service %q", service)
+	}
+
+	sTable, sCode := sService[0], sService[1]
+
+	var method, source string
+	var timeout int
+	query := `
+		SELECT method_, source_, timeout_
+		FROM sys_data_service, sys_table
+		WHERE sys_data_service.table_id_ = sys_table.id 
+			AND sys_table.code_ = ? AND sys_data_service.code_ = ?
+	`
+	if err := asql.SelectRow(tx, query, sTable, sCode).Scan(&method, &source, &timeout); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("数据服务 %q 不存在", service)
+		}
+
+		return nil, err
+	}
+
+	if !strings.EqualFold(method, ctx.Method) {
+		return nil, fmt.Errorf("数据服务 %q 只支持%s方法，但是请求为%s方法", service, method, ctx.Method)
+	}
+
+	// JavaScript脚本调用
+	value, err := rujs.Run(tx, ctx, source, timeout, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return value.Export()
 }
 
 func (o *SysDataService) GetByTableId(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	tableId := ctx.FormValue("table_id")
 
 	query := `
-		SELECT id, code_, name_, method_, 
+		SELECT id, table_id_, code_, name_, method_, 
 			source_, timeout_, create_at_, update_at_ 
 		FROM sys_data_service 
 		WHERE table_id_ = ? 
