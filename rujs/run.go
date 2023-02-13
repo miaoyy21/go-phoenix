@@ -36,7 +36,7 @@ func Run(tx *sql.Tx, ctx *handle.Context, source string, second int, reg func(*o
 
 	js, err := jsvm.NewVM(tx, ctx, reg)
 	if err != nil {
-		return otto.NullValue(), fmt.Errorf("jsvm.NewVM() Failure :: %s", err.Error())
+		return otto.NullValue(), err
 	}
 
 	js.Interrupt = make(chan func(), 1)
@@ -51,7 +51,7 @@ func Run(tx *sql.Tx, ctx *handle.Context, source string, second int, reg func(*o
 
 	value, err = js.Run(source)
 	if err != nil {
-		return otto.NullValue(), fmt.Errorf("js.Run() Failure :: %s", err.Error())
+		return otto.NullValue(), err
 	}
 
 	return value, nil

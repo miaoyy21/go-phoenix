@@ -350,6 +350,10 @@ func (ctx *Context) GetValues() map[string]string {
 	return ctx.values
 }
 
+func (ctx *Context) RemoveParam(param string) {
+	delete(ctx.params, param)
+}
+
 //
 //func (cx *Context) ParsePayload(params interface{}) (map[string]interface{}, error) {
 //	fields := make(map[string]interface{})
