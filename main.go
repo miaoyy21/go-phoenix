@@ -65,11 +65,11 @@ func main() {
 	http.Handle("/api/sys/table_columns", handle.Handler(db, &xsys.SysTableColumns{})) // 数据库表字段
 	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xsys.SysTableForeignKeys{}))  // 数据库表外键
 	//http.Handle("/api/sys/table_indexes", handle.Handler(db, &xsys.SysTableIndexes{}))           // 数据库表索引
-	http.Handle("/api/sys/dict_kinds", handle.Handler(db, &xsys.SysDictKinds{})) // 数据字典
-	http.Handle("/api/sys/dict_items", handle.Handler(db, &xsys.SysDictItems{})) // 数据字典项
-	//http.Handle("/api/sys/auto_nos", handle.Handler(db, &xsys.SysAutoNos{}))                     // 数据字典项
-	//http.Handle("/api/sys/auto_no_kinds", handle.Handler(db, &xsys.SysAutoNoKinds{}))            // 自动编码
-	//http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xsys.SysAutoNoItems{}))            // 自动编码项
+	http.Handle("/api/sys/dict_kinds", handle.Handler(db, &xsys.SysDictKinds{}))      // 数据字典
+	http.Handle("/api/sys/dict_items", handle.Handler(db, &xsys.SysDictItems{}))      // 数据字典项
+	http.Handle("/api/sys/auto_nos", handle.Handler(db, &xsys.SysAutoNos{}))          // 数据字典项
+	http.Handle("/api/sys/auto_no_kinds", handle.Handler(db, &xsys.SysAutoNoKinds{})) // 自动编码
+	http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xsys.SysAutoNoItems{})) // 自动编码项
 	//http.Handle("/api/sys/menus", handle.Handler(db, &xsys.SysMenus{}))                          // 菜单
 	//http.Handle("/api/sys/role_menus", handle.Handler(db, &xsys.SysRoleMenus{}))                 // 角色关联菜单
 	http.Handle("/api/sys/organization_roles", handle.Handler(db, &xsys.SysOrganizationRoles{})) // 组织关联角色
