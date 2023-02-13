@@ -55,7 +55,7 @@ func (o *SysRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		if err := asql.Delete(tx, "DELETE FROM sys_role_menu WHERE role_id_ = ?", id); err != nil {
 			return nil, err
 		}
-		
+
 		// 删除角色
 		if err := asql.Delete(tx, "DELETE FROM sys_role WHERE id = ?", id); err != nil {
 			return nil, err
