@@ -5,13 +5,22 @@ import (
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
+	"strings"
 )
 
 type SysMenus struct {
 }
 
 func (o *SysMenus) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	res, err := asql.Select(tx, "SELECT id, name_, parent_id_, menu_, icon_, valid_, description_ FROM sys_menu ORDER BY order_ ASC")
+	scope := ctx.FormValue("scope")
+
+	query, args := "invalid", make([]interface{}, 0)
+	if strings.EqualFold(scope, "SIMPLE") {
+		query = "SELECT id, name_, parent_id_ FROM sys_menu ORDER BY order_ ASC"
+	} else {
+		query = "SELECT id, name_, parent_id_, menu_, icon_, valid_, description_ FROM sys_menu ORDER BY order_ ASC"
+	}
+	res, err := asql.Select(tx, query, args...)
 	if err != nil {
 		return nil, err
 	}
