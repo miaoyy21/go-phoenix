@@ -81,11 +81,3 @@ func (p *Pagination) SetData(tx *sql.Tx, query string, args ...interface{}) erro
 	p.Data = data
 	return nil
 }
-
-func (p *Pagination) Result() map[string]interface{} {
-	return map[string]interface{}{
-		"data":        p.Data,
-		"pos":         p.Pos,
-		"total_count": p.TotalCount,
-	}
-}
