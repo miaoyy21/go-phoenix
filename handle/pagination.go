@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// Pager 自带过滤与排序的分页器
-type Pager struct {
+// Pagination 自带过滤与排序的分页器
+type Pagination struct {
 	start int
 	count int
 
@@ -21,7 +21,7 @@ type Pager struct {
 	Data       []map[string]string `json:"data"`
 }
 
-func NewPager(ctx *Context, defaultSorts []string) *Pager {
+func NewPagination(ctx *Context, defaultSorts []string) *Pagination {
 	start, _ := strconv.Atoi(ctx.FormValue("start"))
 	count, _ := strconv.Atoi(ctx.FormValue("count"))
 
@@ -36,7 +36,7 @@ func NewPager(ctx *Context, defaultSorts []string) *Pager {
 		sorts = append(sorts, defaultSorts...)
 	}
 
-	return &Pager{
+	return &Pagination{
 		start:   start,
 		count:   count,
 		sorts:   sorts,
@@ -45,7 +45,7 @@ func NewPager(ctx *Context, defaultSorts []string) *Pager {
 	}
 }
 
-func (p *Pager) setRowCount(tx *sql.Tx, query string) error {
+func (p *Pagination) setRowCount(tx *sql.Tx, query string) error {
 	var totalCount int
 
 	// 构建新的SQL语句
@@ -62,7 +62,7 @@ func (p *Pager) setRowCount(tx *sql.Tx, query string) error {
 	return nil
 }
 
-func (p *Pager) SetData(tx *sql.Tx, query string, args ...interface{}) error {
+func (p *Pagination) SetData(tx *sql.Tx, query string, args ...interface{}) error {
 	// 计算总记录数量
 	if err := p.setRowCount(tx, query); err != nil {
 		return err
@@ -80,4 +80,12 @@ func (p *Pager) SetData(tx *sql.Tx, query string, args ...interface{}) error {
 
 	p.Data = data
 	return nil
+}
+
+func (p *Pagination) Result() map[string]interface{} {
+	return map[string]interface{}{
+		"data":        p.Data,
+		"pos":         p.Pos,
+		"total_count": p.TotalCount,
+	}
 }
