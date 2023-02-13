@@ -42,12 +42,7 @@ func (o *SysUsers) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		args = append(args, departId)
 	}
 
-	res, err := asql.Select(tx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

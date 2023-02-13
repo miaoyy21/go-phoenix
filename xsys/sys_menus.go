@@ -20,12 +20,8 @@ func (o *SysMenus) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	} else {
 		query = "SELECT id, name_, parent_id_, menu_, icon_, valid_, description_ FROM sys_menu ORDER BY order_ ASC"
 	}
-	res, err := asql.Select(tx, query, args...)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysMenus) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

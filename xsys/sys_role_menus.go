@@ -12,12 +12,8 @@ type SysRoleMenus struct {
 
 func (o *SysRoleMenus) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	roleId := ctx.FormValue("role_id")
-	res, err := asql.Select(tx, "SELECT menu_id_ FROM sys_role_menu WHERE role_id_ = ?", roleId)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, "SELECT menu_id_ FROM sys_role_menu WHERE role_id_ = ?", roleId)
 }
 
 func (o *SysRoleMenus) PostPatch(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

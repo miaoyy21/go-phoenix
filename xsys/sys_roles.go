@@ -11,12 +11,9 @@ type SysRoles struct {
 }
 
 func (o *SysRoles) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	res, err := asql.Select(tx, "SELECT id, code_, name_, description_, create_at_ FROM sys_role ORDER BY order_ ASC")
-	if err != nil {
-		return nil, err
-	}
+	query := "SELECT id, code_, name_, description_, create_at_ FROM sys_role ORDER BY order_ ASC"
 
-	return res, nil
+	return asql.Select(tx, query)
 }
 
 func (o *SysRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

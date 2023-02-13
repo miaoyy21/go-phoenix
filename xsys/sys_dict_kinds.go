@@ -12,12 +12,8 @@ type SysDictKinds struct {
 
 func (o *SysDictKinds) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	query := "SELECT id, code_, name_, description_, create_at_ FROM sys_dict_kind ORDER BY order_ ASC"
-	res, err := asql.Select(tx, query)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query)
 }
 
 func (o *SysDictKinds) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

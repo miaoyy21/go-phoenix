@@ -36,12 +36,7 @@ func (o *SysDictItems) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 		args = append(args, kindCode)
 	}
 
-	res, err := asql.Select(tx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysDictItems) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

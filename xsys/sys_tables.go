@@ -17,12 +17,8 @@ type SysTables struct {
 
 func (o *SysTables) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	query := "SELECT id, code_, name_, sync_status_, description_, create_at_, update_at_ FROM sys_table ORDER BY order_ ASC"
-	res, err := asql.Select(tx, query)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query)
 }
 
 func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

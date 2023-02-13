@@ -14,12 +14,8 @@ func (o *SysAutoNoItems) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 	kindId := ctx.FormValue("kind_id")
 
 	query := "SELECT id, kind_id_, code_, value_ FROM sys_auto_no_item WHERE kind_id_ = ? ORDER BY order_ ASC"
-	res, err := asql.Select(tx, query, kindId)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query, kindId)
 }
 
 func (o *SysAutoNoItems) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

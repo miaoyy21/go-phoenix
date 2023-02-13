@@ -20,12 +20,8 @@ func (o *SysTableColumns) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 		ORDER BY order_ ASC
 	`
 	args := []interface{}{tableId}
-	res, err := asql.Select(tx, query, args...)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysTableColumns) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

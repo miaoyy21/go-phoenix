@@ -61,12 +61,8 @@ func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	} else {
 		query = "SELECT id, code_, name_, parent_id_, valid_, description_ FROM sys_depart ORDER BY order_ ASC"
 	}
-	res, err := asql.Select(tx, query, args...)
-	if err != nil {
-		return nil, err
-	}
 
-	return res, nil
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysDeparts) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
