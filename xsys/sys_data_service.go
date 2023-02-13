@@ -90,7 +90,7 @@ func (o *SysDataService) PostParse(tx *sql.Tx, ctx *handle.Context) (interface{}
 	}
 
 	// 检测
-	ctx.RemoveParam("method")
+	ctx.Reset(map[string]string{}, map[string]string{"id": "******", "operation": "delete"})
 	if _, err := rujs.Run(newTx, ctx, source, 0, nil); err != nil {
 		return nil, err
 	}

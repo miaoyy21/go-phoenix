@@ -350,8 +350,9 @@ func (ctx *Context) GetValues() map[string]string {
 	return ctx.values
 }
 
-func (ctx *Context) RemoveParam(param string) {
-	delete(ctx.params, param)
+func (ctx *Context) Reset(params map[string]string, values map[string]string) {
+	ctx.params = params
+	ctx.values = values
 }
 
 //
