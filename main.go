@@ -70,7 +70,7 @@ func main() {
 	http.Handle("/api/sys/auto_nos", handle.Handler(db, &xsys.SysAutoNos{}))          // 数据字典项
 	http.Handle("/api/sys/auto_no_kinds", handle.Handler(db, &xsys.SysAutoNoKinds{})) // 自动编码
 	http.Handle("/api/sys/auto_no_items", handle.Handler(db, &xsys.SysAutoNoItems{})) // 自动编码项
-	//http.Handle("/api/sys/menus", handle.Handler(db, &xsys.SysMenus{}))                          // 菜单
+	http.Handle("/api/sys/menus", handle.Handler(db, &xsys.SysMenus{}))               // 菜单
 	//http.Handle("/api/sys/role_menus", handle.Handler(db, &xsys.SysRoleMenus{}))                 // 角色关联菜单
 	http.Handle("/api/sys/organization_roles", handle.Handler(db, &xsys.SysOrganizationRoles{})) // 组织关联角色
 	//http.Handle("/api/sys/operate_logs", handle.Handler(db, &xsys.SysOperateLogs{}))             // 操作日志
