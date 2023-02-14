@@ -107,9 +107,9 @@ func (o *SysDocs) PostUpload(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 func (o *SysDocs) PostDownload(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	docId := ctx.PostFormValue("id")
 
-	var dir string
+	var dir, mime string
 
-	if err := asql.SelectRow(tx, "SELECT dir_ FROM sys_doc WHERE id = ?", docId).Scan(&dir); err != nil {
+	if err := asql.SelectRow(tx, "SELECT dir_, mime_ FROM sys_doc WHERE id = ?", docId).Scan(&dir, &mime); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("无效的文档ID %q", docId)
 		}
@@ -125,6 +125,7 @@ func (o *SysDocs) PostDownload(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 	defer rFile.Close()
 
 	// 写入文件
+	ctx.Writer.Header().Set("Content-Type", mime)
 	if _, err := io.Copy(ctx.Writer, rFile); err != nil {
 		return nil, err
 	}
