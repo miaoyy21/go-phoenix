@@ -27,6 +27,14 @@ func (o *SysUsers) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			ORDER BY sys_depart.order_ ASC
 		`
 		args = append(args, accountId)
+	} else if len(departId) > 0 && strings.EqualFold(scope, "SIMPLE") {
+		query = `
+			SELECT id, user_code_, user_name_, sex_, is_depart_leader_ 
+			FROM sys_user
+			WHERE depart_id_ = ?
+			ORDER BY order_ ASC
+		`
+		args = append(args, departId)
 	} else if len(departId) > 0 && strings.EqualFold(scope, "ALL") {
 		query = `
 			SELECT sys_user.id, sys_user.user_code_, sys_user.user_name_, sys_user.account_id_, 
