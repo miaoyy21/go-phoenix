@@ -40,6 +40,7 @@ type Options struct {
 	Diagram struct {
 		Code        string `json:"code_"`
 		Name        string `json:"name_"`
+		Icon        string `json:"icon_"`
 		Description string `json:"description_"`
 		Keyword     string `json:"keyword_"`
 		ExceedDays  string `json:"exceed_days_"`

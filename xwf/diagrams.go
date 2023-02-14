@@ -30,7 +30,7 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		return map[string]string{"model": model, "options": options}, nil
 	}
 
-	query := "SELECT id, code_, name_, description_, create_at_, update_at_, publish_at_ FROM wf_diagram ORDER BY order_ ASC"
+	query := "SELECT id, code_, name_, icon_, description_, create_at_, update_at_, publish_at_ FROM wf_diagram ORDER BY order_ ASC"
 	return asql.Select(tx, query)
 }
 
@@ -88,21 +88,22 @@ func (r *Diagrams) PostSave(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 	}
 
 	now := asql.GetNow()
-	code, name, description := strings.TrimSpace(op.Diagram.Code), strings.TrimSpace(op.Diagram.Name), op.Diagram.Description
+	code, name := strings.TrimSpace(op.Diagram.Code), strings.TrimSpace(op.Diagram.Name)
+	icon, description := op.Diagram.Icon, op.Diagram.Description
 
 	switch operation {
 	case "insert":
 		newId := asql.GenerateId()
-		query := "INSERT INTO wf_diagram(id, code_, name_, description_, model_, options_, order_, create_at_) VALUES (?,?,?,?,?,?,?,?)"
-		args := []interface{}{newId, code, name, description, model, options, asql.GenerateOrderId(), now}
+		query := "INSERT INTO wf_diagram(id, code_, name_, icon_, description_, model_, options_, order_, create_at_) VALUES (?,?,?,?,?,?,?,?)"
+		args := []interface{}{newId, code, name, icon, description, model, options, asql.GenerateOrderId(), now}
 		if err := asql.Insert(tx, query, args...); err != nil {
 			return nil, err
 		}
 
 		return map[string]interface{}{"status": "success", "id": newId}, nil
 	case "update":
-		query := "UPDATE wf_diagram SET code_ = ?, name_ = ?, description_ = ?, model_ = ?, options_ = ?, update_at_ = ? WHERE id = ?"
-		args := []interface{}{code, name, description, model, options, now, id}
+		query := "UPDATE wf_diagram SET code_ = ?, name_ = ?, icon_ = ?, description_ = ?, model_ = ?, options_ = ?, update_at_ = ? WHERE id = ?"
+		args := []interface{}{code, name, icon, description, model, options, now, id}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err
 		}
