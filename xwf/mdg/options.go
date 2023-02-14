@@ -38,8 +38,11 @@ type OptionsLink struct {
 
 type Options struct {
 	Diagram struct {
-		Keyword    string `json:"keyword_"`
-		ExceedDays string `json:"exceed_days_"`
+		Code        string `json:"code_"`
+		Name        string `json:"name_"`
+		Description string `json:"description_"`
+		Keyword     string `json:"keyword_"`
+		ExceedDays  string `json:"exceed_days_"`
 	} `json:"diagram"`
 
 	Nodes []OptionsNode `json:"nodes"`

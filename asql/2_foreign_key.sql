@@ -17,3 +17,7 @@ ALTER TABLE sys_data_service ADD CONSTRAINT sys_data_service_ForeignKey_table_id
 ALTER TABLE wf_options_diagram ADD CONSTRAINT wf_options_diagram_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);
 ALTER TABLE wf_options_node ADD CONSTRAINT wf_options_node_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);
 ALTER TABLE wf_options_link ADD CONSTRAINT wf_options_link_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);
+
+ALTER TABLE wf_flow ADD CONSTRAINT wf_flow_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);
+ALTER TABLE wf_flow_node ADD CONSTRAINT wf_flow_node_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);
+ALTER TABLE wf_flow_executors ADD CONSTRAINT wf_flow_executors_ForeignKey_diagram_id FOREIGN KEY (diagram_id_) REFERENCES wf_diagram(id);

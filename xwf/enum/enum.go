@@ -22,6 +22,7 @@ type FlowStatus string
 
 var (
 	FlowStatusRevoked   FlowStatus = "Revoked"
+	FlowStatusSuspended FlowStatus = "Suspended"
 	FlowStatusExecuting FlowStatus = "Executing"
 	FlowStatusRejected  FlowStatus = "Rejected"
 	FlowStatusFinished  FlowStatus = "Finished"
