@@ -101,7 +101,7 @@ func (o *SysDocs) PostUpload(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		return nil, err
 	}
 
-	return map[string]interface{}{"status": "server", "id": docId}, nil
+	return map[string]interface{}{"status": "server", "id": docId, "value": docId}, nil
 }
 
 func (o *SysDocs) PostDownload(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
