@@ -2,14 +2,14 @@ package xwf
 
 import (
 	"database/sql"
-	"errors"
+	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
 )
 
 // PostStartBackwards 启动流程的向后流程查询
-func (r *Flows) PostStartBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostStartBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 流程实例是否已启动
@@ -20,7 +20,7 @@ func (r *Flows) PostStartBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}
 	}
 	// 只能启动 草稿、撤回和驳回的流程
 	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
-		return nil, errors.New("流程实例已启动")
+		return nil, fmt.Errorf("流程实例已启动，当前状态为%q", status)
 	}
 
 	// 流程配置

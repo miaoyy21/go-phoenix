@@ -9,7 +9,7 @@ import (
 )
 
 // PostExecuteBackwards 用户流程的向后流程查询
-func (r *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.PostFormValue("id")         // 流转节点ID
 	values := ctx.PostFormValue("values") // 表单数据
 

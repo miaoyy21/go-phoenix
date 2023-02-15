@@ -3,17 +3,18 @@ package xwf
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
 	"go-phoenix/xwf/flow"
+	"strings"
 )
 
 // PostStart 流程启动
-func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 后续节点
@@ -31,7 +32,7 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 
 	// 只能启动 草稿、撤回和驳回的流程
 	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
-		return nil, errors.New("流程实例已启动")
+		return nil, fmt.Errorf("流程实例已启动，当前状态为%q", status)
 	}
 
 	exists, executed, activated := make(map[int]struct{}), base.NewIntSet([]int{}), base.NewIntSet([]int{})
@@ -92,9 +93,16 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 		}
 	}
 
+	// 流程提示信息
+	users, err := o.executingUsers(tx, flowId)
+	if err != nil {
+		return nil, err
+	}
+
 	// 更新流程实例状态
-	query := "UPDATE wf_flow SET  executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE id = ?"
-	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, flowId}
+	statusText := fmt.Sprintf("等待 %s 执行中", strings.Join(users, "  "))
+	query := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, statusText, flowId}
 	if err := asql.Update(tx, query, args...); err != nil {
 		return nil, err
 	}

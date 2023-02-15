@@ -3,6 +3,7 @@ package xwf
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
@@ -11,7 +12,7 @@ import (
 )
 
 // PostExecuteReject 流程驳回
-func (r *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.PostFormValue("id")           // 流转节点ID
 	values := ctx.PostFormValue("values")   // 表单数据
 	comment := ctx.PostFormValue("comment") // 审批意见
@@ -62,9 +63,12 @@ func (r *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{},
 		return nil, err
 	}
 
+	// 流程提示信息
+	statusText := fmt.Sprintf("[%s]%s 已驳回", node.Name(), ctx.GetUserName())
+
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE flow_id_ = ?"
-	argsUpdate := []interface{}{values, base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, flowId}
+	queryUpdate := "UPDATE wf_flow SET values_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE flow_id_ = ?"
+	argsUpdate := []interface{}{values, base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, statusText, flowId}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}

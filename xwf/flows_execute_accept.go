@@ -4,22 +4,25 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
 	"go-phoenix/xwf/flow"
+	"strings"
 )
 
 type ExecuteBackward struct {
 	Key       int               `json:"key"`       // 节点
+	Name      string            `json:"name"`      // 名称
 	Routes    []int             `json:"routes"`    // 节点路由
 	Executors map[string]string `json:"executors"` // 执行者
 }
 
 // PostExecuteAccept 流程执行
-func (r *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	var backs []ExecuteBackward
 
 	id := ctx.PostFormValue("id")           // 流转节点ID
@@ -131,12 +134,23 @@ BREAK:
 		activated.Reset()
 	}
 
+	// 流程提示信息
+	statusText := "已结束"
+	if status != enum.FlowStatusFinished {
+		users, err := o.executingUsers(tx, flowId)
+		if err != nil {
+			return nil, err
+		}
+
+		statusText = fmt.Sprintf("等待 %s 执行中", strings.Join(users, "  "))
+	}
+
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, flowId}
+	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE instance_id_ = ?"
+	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, statusText, flowId}
 	if status == enum.FlowStatusFinished {
-		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, flowId}
+		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ?, status_text_ = ? WHERE instance_id_ = ?"
+		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, statusText, flowId}
 	}
 
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {

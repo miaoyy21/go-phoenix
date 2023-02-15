@@ -11,7 +11,7 @@ import (
 )
 
 // PostRevoke 流程撤回
-func (r *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 是否有权限撤回
@@ -62,8 +62,8 @@ func (r *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 
 	// 更新流程状态
 	empty := base.NewIntSet([]int{}).String()
-	queryUpdate := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE id = ?"
-	argsUpdate := []interface{}{empty, empty, asql.GetNow(), enum.FlowStatusRevoked, flowId}
+	queryUpdate := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+	argsUpdate := []interface{}{empty, empty, asql.GetNow(), enum.FlowStatusRevoked, "流程实例发起者 已撤回", flowId}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}

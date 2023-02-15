@@ -11,12 +11,11 @@ create table wf_flow
     start_key_          int           null,
 
     executed_keys_      varchar(1024) null, -- 当前已执行节点 []int
-    executed_names_     varchar(1024) null, -- 当前激活节点 []int
     activated_keys_     varchar(1024) null, -- 当前激活节点 []int
-    activated_names_    varchar(1024) null, -- 当前激活节点 []int
     status_             varchar(256)  null, -- 流程状态：Draft(草稿) Revoked(撤回) Suspended（挂起） Executing(执行中) Rejected(驳回) Finished(已结束)
+    status_text_        varchar(1024) null,
 
-    create_at_           datetime      null, -- 流程创建时间
+    create_at_          datetime      null, -- 流程创建时间
     start_at_           datetime      null, -- 流程发起时间
     active_at_          datetime      null, -- 流程活动时间
     end_at_             datetime      null, -- 流程结束时间
