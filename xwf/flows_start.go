@@ -94,7 +94,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	}
 
 	// 流程提示信息
-	users, err := o.executingUsers(tx, flowId)
+	users, err := o.executors(tx, flowId)
 	if err != nil {
 		return nil, err
 	}

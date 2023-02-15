@@ -73,7 +73,7 @@ func (o *Flows) GetSummary(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 			Id:    "DraftRevokedRejected",
 			Value: "草稿箱",
 			Icon:  "mdi mdi-progress-wrench",
-			Badge: sBadge[string(enum.FlowStatusDraft)] + sBadge[string(enum.FlowStatusDraft)] + sBadge[string(enum.FlowStatusDraft)],
+			Badge: sBadge[string(enum.FlowStatusDraft)] + sBadge[string(enum.FlowStatusRevoked)] + sBadge[string(enum.FlowStatusRejected)],
 		},
 		{Template: "Separator"},
 		{Id: "Executing", Value: "执行中", Icon: "mdi mdi-progress-upload", Badge: sBadge[string(enum.FlowStatusExecuting)]},
@@ -140,8 +140,8 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	return nil, fmt.Errorf("unrecognizable operation %s ", operation)
 }
 
-func (o *Flows) executingUsers(tx *sql.Tx, flowId string) ([]string, error) {
-	query := "SELECT name_, executor_user_name_ FROM wf_flow WHERE id = ? AND status_ = ?"
+func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
+	query := "SELECT TOP 10 name_, executor_user_name_ FROM wf_flow WHERE id = ? AND status_ = ?"
 	res, err := asql.Select(tx, query, enum.FlowNodeStatusExecuting, flowId)
 	if err != nil {
 		return nil, err

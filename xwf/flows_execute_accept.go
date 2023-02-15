@@ -135,9 +135,9 @@ BREAK:
 	}
 
 	// 流程提示信息
-	statusText := "已结束"
+	statusText := "流程实例已结束"
 	if status != enum.FlowStatusFinished {
-		users, err := o.executingUsers(tx, flowId)
+		users, err := o.executors(tx, flowId)
 		if err != nil {
 			return nil, err
 		}
