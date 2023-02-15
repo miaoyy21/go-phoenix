@@ -7,11 +7,11 @@ import (
 	"go-phoenix/xwf/enum"
 )
 
-func ExecutorPolicyForwardDepartLeader(tx *sql.Tx, diagramId string, key int, instanceId string) ([]string, error) {
+func ExecutorPolicyForwardDepartLeader(tx *sql.Tx, diagramId string, key int, flowId string) ([]string, error) {
 	var startDepartId string
 
-	query := "SELECT executed_depart_id_ FROM wf_flow_node WHERE diagram_id_ = ? AND instance_id_ = ? AND (category_ = ? OR category_ = ?) ORDER BY order_ DESC"
-	if err := asql.SelectRow(tx, query, diagramId, instanceId, enum.CategoryStart, enum.CategoryExecute).Scan(&startDepartId); err != nil {
+	query := "SELECT executed_depart_id_ FROM wf_flow_node WHERE diagram_id_ = ? AND flow_id_ = ? AND (category_ = ? OR category_ = ?) ORDER BY order_ DESC"
+	if err := asql.SelectRow(tx, query, diagramId, flowId, enum.CategoryStart, enum.CategoryExecute).Scan(&startDepartId); err != nil {
 		return nil, err
 	}
 

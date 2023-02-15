@@ -12,21 +12,20 @@ import (
 
 // PostRevoke 流程撤回
 func (r *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	instanceId := ctx.PostFormValue("instanceId") // 流程实例ID
-	values := ctx.PostFormValue("values")         // 表单数据
+	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 是否有权限撤回
-	var diagramId string
+	var diagramId, values string
 	var key int
 	var status enum.FlowStatus
 	query := `
-		SELECT wf_flow.diagram_id_, wf_flow.start_key_, wf_flow.status_
+		SELECT wf_flow.diagram_id_, wf_flow.values_, wf_flow.start_key_, wf_flow.status_
 		FROM wf_flow,wf_options_diagram 
 		WHERE wf_flow.diagram_id_ = wf_options_diagram.diagram_id_
-			AND wf_flow.instance_id_ = ? AND wf_flow.status_ = ? AND wf_flow.create_user_id_ = ?
+			AND wf_flow.flow_id_ = ? AND wf_flow.status_ = ? AND wf_flow.create_user_id_ = ?
 	`
-	args := []interface{}{instanceId, enum.FlowNodeStatusExecuting, ctx.GetUserId()}
-	if err := asql.SelectRow(tx, query, args...).Scan(&diagramId, &key, &status); err != nil {
+	args := []interface{}{flowId, enum.FlowNodeStatusExecuting, ctx.GetUserId()}
+	if err := asql.SelectRow(tx, query, args...).Scan(&diagramId, &values, &key, &status); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有权限撤回流程实例")
 		}
@@ -57,14 +56,14 @@ func (r *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 	}
 
 	// 撤回
-	if err := start.Revoke(instanceId, values); err != nil {
+	if err := start.Revoke(flowId, values); err != nil {
 		return nil, err
 	}
 
 	// 更新流程状态
 	empty := base.NewIntSet([]int{}).String()
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-	argsUpdate := []interface{}{values, empty, empty, asql.GetNow(), enum.FlowStatusRevoked, instanceId}
+	queryUpdate := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE id = ?"
+	argsUpdate := []interface{}{empty, empty, asql.GetNow(), enum.FlowStatusRevoked, flowId}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}

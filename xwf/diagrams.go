@@ -19,6 +19,7 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.FormValue("id")
 	scope := ctx.FormValue("scope")
 
+	query, args := "invalid", make([]interface{}, 0)
 	if len(id) > 0 && strings.EqualFold(scope, "EXTRA") {
 		var model, options string
 
@@ -28,10 +29,13 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		}
 
 		return map[string]string{"model": model, "options": options}, nil
+	} else if strings.EqualFold(scope, "SIMPLE") {
+		query = "SELECT id, code_, name_, icon_, description_ FROM wf_diagram ORDER BY order_ ASC"
+	} else {
+		query = "SELECT id, code_, name_, icon_, description_, create_at_, update_at_, publish_at_ FROM wf_diagram ORDER BY order_ ASC"
 	}
 
-	query := "SELECT id, code_, name_, icon_, description_, create_at_, update_at_, publish_at_ FROM wf_diagram ORDER BY order_ ASC"
-	return asql.Select(tx, query)
+	return asql.Select(tx, query, args...)
 }
 
 func (r *Diagrams) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

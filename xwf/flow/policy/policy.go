@@ -6,7 +6,7 @@ import (
 	flow "go-phoenix/xwf/flow/policy/executor"
 )
 
-type ExecutorPolicyFunc func(tx *sql.Tx, diagramId string, key int, instanceId string) ([]string, error)
+type ExecutorPolicyFunc func(tx *sql.Tx, diagramId string, key int, flowId string) ([]string, error)
 
 var ExecutorPolicyMap = map[enum.ExecutorPolicy]ExecutorPolicyFunc{
 	enum.ExecutorPolicyAllUsers:            flow.ExecutorPolicyAllUsers,

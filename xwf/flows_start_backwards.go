@@ -10,27 +10,25 @@ import (
 
 // PostStartBackwards 启动流程的向后流程查询
 func (r *Flows) PostStartBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	instanceId := ctx.PostFormValue("instanceId")   // 流程实例ID
-	diagramCode := ctx.PostFormValue("diagramCode") // 流程编码
-	values := ctx.PostFormValue("values")           // 表单数据
+	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 流程实例是否已启动
+	var diagramId, values string
 	var status enum.FlowStatus
-	if err := asql.SelectRow(tx, "SELECT status_ FROM wf_flow WHERE instance_id_ = ?", instanceId).Scan(&status); err != nil {
-		if err != sql.ErrNoRows {
-			return nil, err
-		}
-	} else if status != enum.FlowStatusRevoked {
+	if err := asql.SelectRow(tx, "SELECT diagram_id_, values_, status_ FROM wf_flow WHERE id = ?", flowId).Scan(&diagramId, &values, &status); err != nil {
+		return nil, err
+	}
+	// 只能启动 草稿、撤回和驳回的流程
+	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
 		return nil, errors.New("流程实例已启动")
 	}
 
 	// 流程配置
-	var diagramId string
 	var key int
-	query := "SELECT diagram_id_, start_key_ FROM wf_options_diagram WHERE diagram_code_ = ?"
-	if err := asql.SelectRow(tx, query, diagramCode).Scan(&diagramId, &key); err != nil {
+	query := "SELECT start_key_ FROM wf_options_diagram WHERE diagram_id_ = ?"
+	if err := asql.SelectRow(tx, query, diagramId).Scan(&key); err != nil {
 		return nil, err
 	}
 
-	return backwards(tx, ctx, diagramId, key, instanceId, values)
+	return backwards(tx, ctx, diagramId, key, flowId, values)
 }

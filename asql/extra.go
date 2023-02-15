@@ -45,6 +45,8 @@ func Arguments(args ...interface{}) string {
 			ss = append(ss, fmt.Sprintf("%q", arg))
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 			ss = append(ss, fmt.Sprintf("%d", arg))
+		case bool:
+			ss = append(ss, fmt.Sprintf("%t", arg))
 		case float32, float64:
 			ss = append(ss, fmt.Sprintf("%f", arg))
 		default:

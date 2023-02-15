@@ -14,9 +14,7 @@ import (
 
 // PostStart 流程启动
 func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	instanceId := ctx.PostFormValue("instanceId") // 流程实例ID
-	diagramId := ctx.PostFormValue("diagramId")   // 流程ID
-	values := ctx.PostFormValue("values")         // 表单数据
+	flowId := ctx.PostFormValue("flowId") // 流程实例ID
 
 	// 后续节点
 	var backs []ExecuteBackward
@@ -25,12 +23,14 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	}
 
 	// 流程实例是否已启动
+	var diagramId, values string
 	var status enum.FlowStatus
-	if err := asql.SelectRow(tx, "SELECT status_ FROM wf_flow WHERE instance_id_ = ?", instanceId).Scan(&status); err != nil {
-		if err != sql.ErrNoRows {
-			return nil, err
-		}
-	} else if status != enum.FlowStatusRevoked {
+	if err := asql.SelectRow(tx, "SELECT diagram_id_, values_, status_ FROM wf_flow WHERE id = ?", flowId).Scan(&diagramId, &values, &status); err != nil {
+		return nil, err
+	}
+
+	// 只能启动 草稿、撤回和驳回的流程
+	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
 		return nil, errors.New("流程实例已启动")
 	}
 
@@ -53,11 +53,11 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 
 				// 是否属于撤回再次启动
 				if status == enum.FlowStatusRevoked {
-					if err := start.Restart(instanceId, values); err != nil {
+					if err := start.Start(flowId, values); err != nil {
 						return nil, err
 					}
 				} else {
-					if err := start.Start(instanceId, values); err != nil {
+					if err := start.Start(flowId, values); err != nil {
 						return nil, err
 					}
 				}
@@ -70,7 +70,7 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 				}
 
 				activated.Append(route)
-				if err := execute.ExecuteStart(instanceId, back.Executors); err != nil {
+				if err := execute.ExecuteStart(flowId, back.Executors); err != nil {
 					return nil, err
 				}
 			}
@@ -78,7 +78,7 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 			// Branch
 			if branch, ok := node.(flow.BranchFlowable); ok {
 				executed.Append(route)
-				if err := branch.Branch(instanceId); err != nil {
+				if err := branch.Branch(flowId); err != nil {
 					return nil, err
 				}
 			}
@@ -93,8 +93,8 @@ func (r *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	}
 
 	// 更新流程实例状态
-	query := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-	args := []interface{}{values, executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, instanceId}
+	query := "UPDATE wf_flow SET  executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE id = ?"
+	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, flowId}
 	if err := asql.Update(tx, query, args...); err != nil {
 		return nil, err
 	}

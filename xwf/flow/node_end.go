@@ -11,7 +11,7 @@ type NodeEnd struct {
 	Node
 }
 
-func (node *NodeEnd) End(instanceId string, values string) error {
+func (node *NodeEnd) End(flowId string, values string) error {
 
 	// 执行结束前脚本
 	if len(node.onBeforeScript) > 0 {
@@ -25,7 +25,7 @@ func (node *NodeEnd) End(instanceId string, values string) error {
 	// 创建结束节点
 	query := `
 		INSERT INTO wf_flow_node(
-			id, instance_id_, diagram_id_, 
+			id, flow_id_, diagram_id_, 
 			key_, category_, code_, name_, order_, 
 			executor_user_id_, executor_user_name_, 
 			activated_at_, executed_at_, status_, 
@@ -35,7 +35,7 @@ func (node *NodeEnd) End(instanceId string, values string) error {
 		VALUES(?,?,?, ?,?,?,?,?, ?,?, ?,?,?, ?,?,?, ?,?,?)
 	`
 	args := []interface{}{
-		asql.GenerateId(), instanceId, node.diagramId,
+		asql.GenerateId(), flowId, node.diagramId,
 		node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
 		node.ctx.GetUserId(), node.ctx.GetUserName(),
 		now, now, enum.FlowNodeStatusExecutedAuto,

@@ -13,14 +13,14 @@ func (r *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface
 	id := ctx.PostFormValue("id")         // 流转节点ID
 	values := ctx.PostFormValue("values") // 表单数据
 
-	var diagramId, instanceId string
+	var diagramId, flowId string
 	var key int
 	query := `
-		SELECT diagram_id_, key_, instance_id_
+		SELECT diagram_id_, flow_id_, key_
 		FROM wf_flow_node 
 		WHERE id = ? AND executor_user_id_ = ? AND status_ = ?
 	`
-	if err := asql.SelectRow(tx, query, id, ctx.GetUserId(), enum.FlowNodeStatusExecuting).Scan(&diagramId, &key, &instanceId); err != nil {
+	if err := asql.SelectRow(tx, query, id, ctx.GetUserId(), enum.FlowNodeStatusExecuting).Scan(&diagramId, &flowId, &key); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}
@@ -28,5 +28,5 @@ func (r *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface
 		return nil, err
 	}
 
-	return backwards(tx, ctx, diagramId, key, instanceId, values)
+	return backwards(tx, ctx, diagramId, key, flowId, values)
 }

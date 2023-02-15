@@ -6,7 +6,7 @@ import (
 	"go-phoenix/base"
 )
 
-func ExecutorPolicyAllUsers(tx *sql.Tx, diagramId string, key int, instanceId string) ([]string, error) {
+func ExecutorPolicyAllUsers(tx *sql.Tx, diagramId string, key int, flowId string) ([]string, error) {
 	query := "SELECT id FROM sys_depart ORDER BY order_ ASC"
 	res, err := asql.Select(tx, query)
 	if err != nil {

@@ -19,7 +19,7 @@ type Backward struct {
 	Organization []string          `json:"organization"` // 组织ID（部门ID或用户ID）
 }
 
-func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, instanceId string, values string) (interface{}, error) {
+func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowId string, values string) (interface{}, error) {
 	start, err := flow.NewNode(tx, ctx, diagramId, key)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, insta
 
 		// 获取执行环节的所有执行者
 		if execute, ok := node.(flow.ExecuteFlowable); ok {
-			scope, err := execute.ScopeExecutors(instanceId, values)
+			scope, err := execute.ScopeExecutors(flowId, values)
 			if err != nil {
 				return nil, err
 			}
@@ -95,5 +95,5 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, insta
 
 	logrus.Debugf("backs are %s", string(jbs))
 
-	return map[string]interface{}{"status": "success", "instanceId": instanceId, "backwards": backs, "diagramId": diagramId}, nil
+	return map[string]interface{}{"status": "success", "flowId": flowId, "backwards": backs, "diagramId": diagramId}, nil
 }

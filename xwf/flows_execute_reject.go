@@ -12,24 +12,22 @@ import (
 
 // PostExecuteReject 流程驳回
 func (r *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	id := ctx.PostFormValue("id")                 // 流转节点ID
-	instanceId := ctx.PostFormValue("instanceId") // 流程实例ID
-	diagramId := ctx.PostFormValue("diagramId")   // 流程ID
-	values := ctx.PostFormValue("values")         // 表单数据
-	comment := ctx.PostFormValue("comment")       // 审批意见
+	id := ctx.PostFormValue("id")           // 流转节点ID
+	values := ctx.PostFormValue("values")   // 表单数据
+	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 校验数据是否合法
+	var flowId, diagramId string
 	var key int
 	var executedKeys, activatedKeys string
 	query := `
-		SELECT wf_flow_node.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
+		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_node.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
 		FROM wf_flow_node,wf_flow 
-		WHERE wf_flow.instance_id_ = wf_flow_node.instance_id_ AND wf_flow_node.id = ? 
-			AND wf_flow_node.instance_id_ = ? AND wf_flow_node.diagram_id_ = ? 
+		WHERE wf_flow.id = wf_flow_node.flow_id_ AND wf_flow_node.id = ? 
 			AND wf_flow_node.executor_user_id_ = ? AND wf_flow_node.status_ = ?
 	`
-	args := []interface{}{id, instanceId, diagramId, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
-	if err := asql.SelectRow(tx, query, args...).Scan(&key, &executedKeys, &activatedKeys); err != nil {
+	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
+	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &executedKeys, &activatedKeys); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}
@@ -60,13 +58,13 @@ func (r *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// 执行驳回
-	if err := execute.ExecuteReject(id, instanceId, values, comment); err != nil {
+	if err := execute.ExecuteReject(id, flowId, values, comment); err != nil {
 		return nil, err
 	}
 
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-	argsUpdate := []interface{}{values, base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, instanceId}
+	queryUpdate := "UPDATE wf_flow SET values_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE flow_id_ = ?"
+	argsUpdate := []interface{}{values, base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, flowId}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}

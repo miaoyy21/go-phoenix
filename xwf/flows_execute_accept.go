@@ -22,11 +22,9 @@ type ExecuteBackward struct {
 func (r *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	var backs []ExecuteBackward
 
-	id := ctx.PostFormValue("id")                 // 流转节点ID
-	instanceId := ctx.PostFormValue("instanceId") // 流程实例ID
-	diagramId := ctx.PostFormValue("diagramId")   // 流程ID
-	values := ctx.PostFormValue("values")         // 表单数据
-	comment := ctx.PostFormValue("comment")       // 审批意见
+	id := ctx.PostFormValue("id")           // 流转节点ID
+	values := ctx.PostFormValue("values")   // 表单数据
+	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 后续节点
 	if err := json.Unmarshal([]byte(ctx.PostFormValue("backwards")), &backs); err != nil {
@@ -34,17 +32,17 @@ func (r *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// 校验数据是否合法
+	var flowId, diagramId string
 	var key int
 	var executedKeys, activatedKeys string
 	query := `
-		SELECT wf_flow_node.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
+		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_node.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
 		FROM wf_flow_node,wf_flow 
-		WHERE wf_flow.instance_id_ = wf_flow_node.instance_id_ AND wf_flow_node.id = ? 
-			AND wf_flow_node.instance_id_ = ? AND wf_flow_node.diagram_id_ = ? 
+		WHERE wf_flow.id = wf_flow_node.flow_id_ AND wf_flow_node.id = ? 
 			AND wf_flow_node.executor_user_id_ = ? AND wf_flow_node.status_ = ?
 	`
-	args := []interface{}{id, instanceId, diagramId, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
-	if err := asql.SelectRow(tx, query, args...).Scan(&key, &executedKeys, &activatedKeys); err != nil {
+	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
+	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &executedKeys, &activatedKeys); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}
@@ -91,7 +89,7 @@ BREAK:
 				// Start
 				if route == back.Key {
 					activated.Append(route)
-					if err := execute.ExecuteStart(instanceId, back.Executors); err != nil {
+					if err := execute.ExecuteStart(flowId, back.Executors); err != nil {
 						return nil, err
 					}
 				}
@@ -100,7 +98,7 @@ BREAK:
 			// Branch
 			if branch, ok := node.(flow.BranchFlowable); ok {
 				executed.Append(route)
-				if err := branch.Branch(instanceId); err != nil {
+				if err := branch.Branch(flowId); err != nil {
 					return nil, err
 				}
 			}
@@ -109,7 +107,7 @@ BREAK:
 			if end, ok := node.(flow.EndFlowable); ok {
 				executed.Append(route)
 				status = enum.FlowStatusFinished
-				if err := end.End(instanceId, values); err != nil {
+				if err := end.End(flowId, values); err != nil {
 					return nil, err
 				}
 
@@ -125,7 +123,7 @@ BREAK:
 	// 如果状态为结束，那么将激活节点作废
 	if status == enum.FlowStatusFinished {
 		query := "UPDATE wf_flow_node SET status_ = ?, canceled_at_ = ? WHERE instance_id_ = ? AND status_ = ?"
-		args := []interface{}{enum.FlowNodeStatusCanceled, now, instanceId, enum.FlowNodeStatusExecuting}
+		args := []interface{}{enum.FlowNodeStatusCanceled, now, flowId, enum.FlowNodeStatusExecuting}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err
 		}
@@ -135,10 +133,10 @@ BREAK:
 
 	// 更新流程状态
 	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, instanceId}
+	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, flowId}
 	if status == enum.FlowStatusFinished {
 		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ? WHERE instance_id_ = ?"
-		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, instanceId}
+		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, flowId}
 	}
 
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {

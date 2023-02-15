@@ -38,7 +38,7 @@ func (node *NodeExecute) RequireRejectComment() bool {
 	return node.requireRejectComment
 }
 
-func (node *NodeExecute) ExecuteStart(instanceId string, executors map[string]string) error {
+func (node *NodeExecute) ExecuteStart(flowId string, executors map[string]string) error {
 	if len(executors) < 1 {
 		return fmt.Errorf("%q 没有选择执行者", node.name)
 	}
@@ -49,7 +49,7 @@ func (node *NodeExecute) ExecuteStart(instanceId string, executors map[string]st
 	for userId, userName := range executors {
 		query := `
 		INSERT INTO wf_flow_node(
-			id, instance_id_, executed_id_, 
+			id, flow_id_, executed_id_, 
 			diagram_id_, key_, category_, code_, name_, order_, 
 			executor_user_id_, executor_user_name_, 
 			activated_at_,  status_
@@ -57,7 +57,7 @@ func (node *NodeExecute) ExecuteStart(instanceId string, executors map[string]st
 		VALUES(?,?,?, ?,?,?,?,?,?, ?,?, ?,?)
 	`
 		args := []interface{}{
-			asql.GenerateId(), instanceId, executedId,
+			asql.GenerateId(), flowId, executedId,
 			node.diagramId, node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
 			userId, userName,
 			now, enum.FlowNodeStatusExecuting,
@@ -122,7 +122,7 @@ func (node *NodeExecute) ExecuteAccept(id string, values string, comment string)
 	return nil
 }
 
-func (node *NodeExecute) ExecuteReject(id string, instanceId string, values string, comment string) error {
+func (node *NodeExecute) ExecuteReject(id string, flowId string, values string, comment string) error {
 
 	// 驳回脚本
 	if len(node.onRejectScript) > 0 {
@@ -152,8 +152,8 @@ func (node *NodeExecute) ExecuteReject(id string, instanceId string, values stri
 	}
 
 	// 将激活节点作废
-	queryNode := "UPDATE wf_flow_node SET canceled_at_ = ?, status_ = ? WHERE instance_id_ = ? AND status_ = ?"
-	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, instanceId, enum.FlowNodeStatusExecuting}
+	queryNode := "UPDATE wf_flow_node SET canceled_at_ = ?, status_ = ? WHERE flow_id_ = ? AND status_ = ?"
+	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, flowId, enum.FlowNodeStatusExecuting}
 	if err := asql.Update(node.tx, queryNode, argsNode...); err != nil {
 		return err
 	}

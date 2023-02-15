@@ -40,6 +40,8 @@ func TestOtto(t *testing.T) {
 	ss, ok := val.([]string)
 	t.Logf("Out Convert is %t, %#v", ok, ss)
 
+	t.Logf("%t", false)
+
 	//out,err:=value.ToInteger()
 	//if err!=nil{
 	//	t.Fatalf("value ToInteger Failure :: %s",err.Error())

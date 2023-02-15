@@ -21,6 +21,7 @@ var (
 type FlowStatus string
 
 var (
+	FlowStatusDraft     FlowStatus = "Draft"
 	FlowStatusRevoked   FlowStatus = "Revoked"
 	FlowStatusSuspended FlowStatus = "Suspended"
 	FlowStatusExecuting FlowStatus = "Executing"

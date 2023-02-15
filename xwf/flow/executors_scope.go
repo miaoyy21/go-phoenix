@@ -11,14 +11,14 @@ import (
 	"strings"
 )
 
-func (node *NodeExecute) ScopeExecutors(instanceId string, values string) ([]string, error) {
+func (node *NodeExecute) ScopeExecutors(flowId string, values string) ([]string, error) {
 	scope := make([]string, 0, 16)
 
 	// 如果是所有用户，那么就不进行其他判断
 	if node.executorPolicy == enum.ExecutorPolicyAllUsers {
 		fn := flow.ExecutorPolicyMap[enum.ExecutorPolicyAllUsers]
 
-		return fn(node.tx, node.diagramId, node.key, instanceId)
+		return fn(node.tx, node.diagramId, node.key, flowId)
 	}
 
 	// User
@@ -60,7 +60,7 @@ func (node *NodeExecute) ScopeExecutors(instanceId string, values string) ([]str
 		}
 
 		// 执行者策略函数调用
-		rows, err := fn(node.tx, node.diagramId, node.key, instanceId)
+		rows, err := fn(node.tx, node.diagramId, node.key, flowId)
 		if err != nil {
 			return nil, err
 		}
