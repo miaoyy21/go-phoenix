@@ -54,7 +54,7 @@ func main() {
 	logrus.Info("Connect Database Successful ...")
 
 	// 静态文件
-	http.Handle("/", http.FileServer(http.Dir("assets")))
+	http.Handle("/", http.FileServer(http.Dir("www")))
 
 	http.Handle("/api/sys/login", handle.Handler(db, &xsys.SysLogin{}))                          // 登录
 	http.Handle("/api/sys/setting", handle.Handler(db, &xsys.SysSetting{}))                      // 系统设置

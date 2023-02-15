@@ -1,0 +1,73 @@
+/*! attaching onStoreUpdated event
+     **/
+
+/*! checks document selection
+     **/
+
+/*! constructor
+     **/
+
+/*! counts how many occurances substring in string **/
+
+/*! create textarea or returns existing
+     **/
+
+/*! gets hash of html-element attributes
+     **/
+
+/*! gets header from first table row
+     **/
+
+/*! gets list of referencies in formula
+     **/
+
+/*! if it's defined escape function - call it
+     *	@param value
+     *		value to escape
+     *	@return
+     *		escaped value
+     **/
+
+/*! process ctrl+V pressing
+     **/
+
+/*! process updates list to POST and GET params according dataprocessor protocol
+     *	@param updates
+     *		list of objects { id: "item id", data: "data hash", operation: "type of operation"}
+     *	@return
+     *		object { post: { hash of post params as name: value }, get: { hash of get params as name: value } }
+     **/
+
+/*! select text in textarea
+     **/
+
+/*! send dataprocessor query to server
+     *	and attach event to process result
+     *	@param url
+     *		server url
+     *	@param get
+     *		hash of get params
+     *	@param post
+     *		hash of post params
+     *	@mode
+     *		'post' or 'get'
+     **/
+
+/*! set text into buffer
+     **/
+
+/*! suggestions navigation: up/down buttons move selection
+     *	@param e
+     *		event object
+     **/
+
+/*! 作者: 530308418@qq.com */
+
+/**
+ * @license
+ * webix UI v.9.4.0
+ * This software is allowed to use under GPL or you need to obtain Commercial License
+ * to use it in non-GPL project. Please contact sales@webix.com for details
+ */
+
+//!!!Set the same in skin.less!!!

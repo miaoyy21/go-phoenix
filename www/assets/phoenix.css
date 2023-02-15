@@ -1,0 +1,56 @@
+body {
+    background: #EEEEEE;
+}
+
+.phoenix_hover {
+    background: #c6e7ef;
+}
+
+.phoenix_hover_red {
+    background: #FFE0E0;
+}
+
+.phoenix_hover_green {
+    background: #E0FFE0;
+}
+
+.phoenix_hover_blue {
+    background: #E0E0FF;
+}
+
+.phoenix_danger {
+    background: #FFAAAA;
+}
+
+.phoenix_primary_icon::before {
+    color: #1CA1C1;
+}
+
+.phoenix_warning_icon::before {
+    color: #FDBF4C;
+}
+
+.phoenix_danger_icon::before {
+    color: #FF5C4C;
+}
+
+.webix_button,
+.webix_popup_button,
+.webix_popup_button.confirm {
+    font-size: 12px;
+}
+
+.webix_badge {
+    border-radius: 8px;
+    height: 16px;
+    min-width: 16px;
+    line-height: 16px
+}
+
+/* 编辑文本框尾部的清除按钮 */
+span.webix_input_icon.webix_clear_icon.webix_icon_transparent.wxi-close {
+    right: 8px;
+    margin-top: 4px;
+    width: 20px;
+    font-size: 12px
+}

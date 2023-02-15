@@ -1,0 +1,26 @@
+[
+    {
+        "id": "Draft",
+        "value": "草稿"
+    },
+    {
+        "id": "Revoked",
+        "value": "已撤回"
+    },
+    {
+        "id": "Suspended",
+        "value": "已挂起"
+    },
+    {
+        "id": "Executing",
+        "value": "执行中"
+    },
+    {
+        "id": "Rejected",
+        "value": "已驳回"
+    },
+    {
+        "id": "Finished",
+        "value": "已结束"
+    }
+]
