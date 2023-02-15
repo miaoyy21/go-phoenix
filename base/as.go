@@ -31,6 +31,26 @@ func ResAsMap(res []map[string]string, sensitive bool, k string, v string) map[s
 	return ms
 }
 
+func ResAsMapStringInt(res []map[string]string, k string, v string) map[string]int {
+	ms := make(map[string]int)
+
+	for _, row := range res {
+		key, ok := row[k]
+		if !ok {
+			logrus.Panicf("arguments ResAsMapSlice's Map Must has key field %q .", k)
+		}
+
+		n, err := strconv.Atoi(row[v])
+		if err != nil {
+			logrus.Panicf("arguments ResAsMapSlice's Value convert int failure %q .", err.Error())
+		}
+
+		ms[key] = n
+	}
+
+	return ms
+}
+
 func ResAsMapSlice(res []map[string]string, sensitive bool, k string, v string) (map[string]string, []string) {
 	ms, ss := make(map[string]string), make([]string, 0, len(res))
 

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-phoenix/asql"
+	"go-phoenix/base"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
 	"strings"
@@ -13,14 +14,75 @@ type Flows struct {
 }
 
 func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	query, args := "invalid", make([]interface{}, 0)
+	diagramId := ctx.FormValue("diagram_id")
+	status := ctx.FormValue("status")
 
-	res, err := asql.Select(tx, query, args...)
+	query, args := "invalid", make([]interface{}, 0)
+	switch status {
+	case "DraftRevokedRejected":
+		query = `
+			SELECT id, keyword_, executed_keys_, activated_keys_, 
+				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
+			FROM wf_flow 
+			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN(?,?,?)
+			ORDER BY order_ DESC
+		`
+		args = append(args, diagramId, ctx.GetUserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
+	default:
+		query = `
+			SELECT id, keyword_, executed_keys_, activated_keys_, 
+				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
+			FROM wf_flow 
+			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ = ?
+			ORDER BY order_ DESC
+		`
+		args = append(args, diagramId, ctx.GetUserId(), status)
+	}
+
+	return asql.Select(tx, query, args...)
+}
+
+type Summary struct {
+	Id    string `json:"id,omitempty"`
+	Icon  string `json:"icon,omitempty"`
+	Value string `json:"value,omitempty"`
+	Badge int    `json:"badge,omitempty"`
+
+	Template string `json:"$template,omitempty"`
+}
+
+func (o *Flows) GetSummary(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	diagramId := ctx.FormValue("diagram_id")
+
+	query := `
+		SELECT status_, COUNT(1) AS count_ 
+		FROM wf_flow 
+		WHERE diagram_id_ = ? AND create_user_id_ = ?
+		GROUP BY status_
+	`
+	res, err := asql.Select(tx, query, diagramId, ctx.GetUserId())
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	// 汇总
+	sBadge := base.ResAsMapStringInt(res, "status_", "count_")
+
+	return []Summary{
+		{
+			Id:    "DraftRevokedRejected",
+			Value: "草稿箱",
+			Icon:  "mdi mdi-progress-wrench",
+			Badge: sBadge[string(enum.FlowStatusDraft)] + sBadge[string(enum.FlowStatusDraft)] + sBadge[string(enum.FlowStatusDraft)],
+		},
+		{Template: "Separator"},
+		{Id: "Executing", Value: "执行中", Icon: "mdi mdi-progress-upload", Badge: sBadge[string(enum.FlowStatusExecuting)]},
+		{Template: "Separator"},
+		{Id: "Finished", Value: "已结束", Icon: "mdi mdi-progress-check", Badge: sBadge[string(enum.FlowStatusFinished)]},
+		{Template: "Separator"},
+		{Id: "Suspended", Value: "已挂起", Icon: "mdi mdi-progress-question", Badge: sBadge[string(enum.FlowStatusSuspended)]},
+		{Template: "Separator"},
+	}, nil
 }
 
 func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
@@ -55,7 +117,7 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		`
 		args := []interface{}{
 			newId, values, diagramId, keyword,
-			key, enum.FlowStatusDraft, "草稿", asql.GenerateOrderId(), now,
+			key, enum.FlowStatusDraft, "等待流程实例启动", asql.GenerateOrderId(), now,
 			ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(),
 			ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(),
 		}
