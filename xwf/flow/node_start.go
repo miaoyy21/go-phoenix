@@ -18,34 +18,7 @@ func (node *NodeStart) Revocable() bool {
 	return node.revocable
 }
 
-func (node *NodeStart) start(flowId string) error {
-	now := asql.GetNow()
-
-	// 创建开始节点
-	queryNode := `
-		INSERT INTO wf_flow_node(
-			id, flow_id_, diagram_id_, 
-			key_, category_, code_, name_, order_, 
-			executor_user_id_, executor_user_name_, 
-			activated_at_, executed_at_, status_, 
-			executed_depart_id_, executed_depart_code_, executed_depart_name_, 
-			executed_user_id_, executed_user_code_, executed_user_name_
-		)
-		VALUES(?,?,?, ?,?,?,?,?, ?,?, ?,?,?, ?,?,?, ?,?,?)
-	`
-	argsNode := []interface{}{
-		asql.GenerateId(), flowId, node.diagramId,
-		node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
-		node.ctx.GetUserId(), node.ctx.GetUserName(),
-		now, now, enum.FlowNodeStatusExecutedAuto,
-		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
-		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
-	}
-
-	return asql.Insert(node.tx, queryNode, argsNode...)
-}
-
-func (node *NodeStart) Start(flowId string, values string) error {
+func (node *NodeStart) Start(flowId string, values string, comment string) error {
 	// 执行开始前脚本
 	if len(node.onBeforeScript) > 0 {
 		if _, err := rujs.Run(node.tx, node.ctx, node.onBeforeScript, 0, flowReg(node, values)); err != nil {
@@ -54,7 +27,30 @@ func (node *NodeStart) Start(flowId string, values string) error {
 	}
 
 	// 开始节点
-	if err := node.start(flowId); err != nil {
+	now := asql.GetNow()
+
+	// 创建开始节点
+	queryNode := `
+		INSERT INTO wf_flow_node(
+			id, flow_id_, diagram_id_, 
+			key_, category_, code_, name_, order_, 
+			executor_user_id_, executor_user_name_, 
+			activated_at_, executed_at_, comment_, status_, 
+			executed_depart_id_, executed_depart_code_, executed_depart_name_, 
+			executed_user_id_, executed_user_code_, executed_user_name_
+		)
+		VALUES(?,?,?, ?,?,?,?,?, ?,?, ?,?,?,?, ?,?,?, ?,?,?)
+	`
+	argsNode := []interface{}{
+		asql.GenerateId(), flowId, node.diagramId,
+		node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
+		node.ctx.GetUserId(), node.ctx.GetUserName(),
+		now, now, comment, enum.FlowNodeStatusExecutedAuto,
+		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
+		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
+	}
+
+	if err := asql.Insert(node.tx, queryNode, argsNode...); err != nil {
 		return err
 	}
 

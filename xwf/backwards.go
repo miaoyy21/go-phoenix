@@ -95,5 +95,5 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowI
 
 	logrus.Debugf("backs are %s", string(jbs))
 
-	return map[string]interface{}{"status": "success", "flowId": flowId, "backwards": backs, "diagramId": diagramId}, nil
+	return backs, nil
 }

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Publish(tx *sql.Tx, id, code, name string, model Model, options Options) error {
+func Publish(tx *sql.Tx, id, code, name string, order int64, model Model, options Options) error {
 
 	// 获取各节点的名称
 	names := make(map[int]string)
@@ -176,8 +176,8 @@ func Publish(tx *sql.Tx, id, code, name string, model Model, options Options) er
 	var args []interface{}
 
 	// Insert Diagram Options
-	query = "INSERT INTO wf_options_diagram(id,diagram_id_,diagram_code_,diagram_name_,keyword_,exceed_days_,start_key_) VALUES (?,?,?,?,?,?,?)"
-	args = []interface{}{asql.GenerateId(), id, code, name, options.Diagram.Keyword, options.Diagram.ExceedDays, start}
+	query = "INSERT INTO wf_options_diagram(id, diagram_id_, diagram_code_, diagram_name_, keyword_, icon_, description_, exceed_days_, start_key_, order_) VALUES (?,?,?,?,?,?,?,?,?,?)"
+	args = []interface{}{asql.GenerateId(), id, code, name, options.Diagram.Keyword, options.Diagram.Icon, options.Diagram.Description, options.Diagram.ExceedDays, start, order}
 	if err := asql.Insert(tx, query, args...); err != nil {
 		return err
 	}

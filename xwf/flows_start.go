@@ -15,7 +15,8 @@ import (
 
 // PostStart 流程启动
 func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	flowId := ctx.PostFormValue("flowId") // 流程实例ID
+	id := ctx.PostFormValue("id")           // 流程实例ID
+	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 后续节点
 	var backs []ExecuteBackward
@@ -26,7 +27,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	// 流程实例是否已启动
 	var diagramId, values string
 	var status enum.FlowStatus
-	if err := asql.SelectRow(tx, "SELECT diagram_id_, values_, status_ FROM wf_flow WHERE id = ?", flowId).Scan(&diagramId, &values, &status); err != nil {
+	if err := asql.SelectRow(tx, "SELECT diagram_id_, values_, status_ FROM wf_flow WHERE id = ?", id).Scan(&diagramId, &values, &status); err != nil {
 		return nil, err
 	}
 
@@ -54,11 +55,11 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 
 				// 是否属于撤回再次启动
 				if status == enum.FlowStatusRevoked {
-					if err := start.Start(flowId, values); err != nil {
+					if err := start.Start(id, values, comment); err != nil {
 						return nil, err
 					}
 				} else {
-					if err := start.Start(flowId, values); err != nil {
+					if err := start.Start(id, values, comment); err != nil {
 						return nil, err
 					}
 				}
@@ -71,7 +72,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 				}
 
 				activated.Append(route)
-				if err := execute.ExecuteStart(flowId, back.Executors); err != nil {
+				if err := execute.ExecuteStart(id, back.Executors); err != nil {
 					return nil, err
 				}
 			}
@@ -79,7 +80,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 			// Branch
 			if branch, ok := node.(flow.BranchFlowable); ok {
 				executed.Append(route)
-				if err := branch.Branch(flowId); err != nil {
+				if err := branch.Branch(id); err != nil {
 					return nil, err
 				}
 			}
@@ -94,7 +95,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	}
 
 	// 流程提示信息
-	users, err := o.executors(tx, flowId)
+	users, err := o.executors(tx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	// 更新流程实例状态
 	statusText := fmt.Sprintf("等待 %s 执行中", strings.Join(users, "  "))
 	query := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
-	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, statusText, flowId}
+	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, statusText, id}
 	if err := asql.Update(tx, query, args...); err != nil {
 		return nil, err
 	}

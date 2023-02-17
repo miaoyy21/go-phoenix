@@ -20,7 +20,7 @@ type StartFlowable interface {
 
 	Revocable() bool
 
-	Start(flowId string, values string) error
+	Start(flowId string, values string, comment string) error
 	Revoke(flowId string, values string) error
 }
 

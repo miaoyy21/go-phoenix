@@ -22,17 +22,29 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	query, args := "invalid", make([]interface{}, 0)
 	if len(id) > 0 && strings.EqualFold(scope, "EXTRA") {
 		var model, options string
-
-		query := "SELECT model_, options_ FROM wf_diagram WHERE id = ?"
-		if err := asql.SelectRow(tx, query, id).Scan(&model, &options); err != nil {
+		if err := asql.SelectRow(tx, "SELECT model_, options_ FROM wf_diagram WHERE id = ?", id).Scan(&model, &options); err != nil {
 			return nil, err
 		}
 
 		return map[string]string{"model": model, "options": options}, nil
-	} else if strings.EqualFold(scope, "SIMPLE") {
-		query = "SELECT id, code_, name_, icon_, description_ FROM wf_diagram ORDER BY order_ ASC"
 	} else {
 		query = "SELECT id, code_, name_, icon_, description_, create_at_, update_at_, publish_at_ FROM wf_diagram ORDER BY order_ ASC"
+	}
+
+	return asql.Select(tx, query, args...)
+}
+
+func (r *Diagrams) GetPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	scope := ctx.FormValue("scope")
+
+	query, args := "invalid", make([]interface{}, 0)
+	if strings.EqualFold(scope, "SIMPLE") {
+		query = `
+			SELECT id, diagram_id_, diagram_code_, diagram_name_, 
+				keyword_, icon_, description_ 
+			FROM wf_options_diagram
+			ORDER BY order_ ASC
+		`
 	}
 
 	return asql.Select(tx, query, args...)
@@ -98,7 +110,7 @@ func (r *Diagrams) PostSave(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 	switch operation {
 	case "insert":
 		newId := asql.GenerateId()
-		query := "INSERT INTO wf_diagram(id, code_, name_, icon_, description_, model_, options_, order_, create_at_) VALUES (?,?,?,?,?,?,?,?)"
+		query := "INSERT INTO wf_diagram(id, code_, name_, icon_, description_, model_, options_, order_, create_at_) VALUES (?,?,?,?,?,?,?,?,?)"
 		args := []interface{}{newId, code, name, icon, description, model, options, asql.GenerateOrderId(), now}
 		if err := asql.Insert(tx, query, args...); err != nil {
 			return nil, err
@@ -122,7 +134,8 @@ func (r *Diagrams) PostPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 	id := ctx.PostFormValue("id")
 
 	var code, name, model, options string
-	err := asql.SelectRow(tx, "SELECT code_, name_, model_, options_ FROM wf_diagram WHERE id = ?", id).Scan(&code, &name, &model, &options)
+	var order int64
+	err := asql.SelectRow(tx, "SELECT code_, name_, model_, options_, order_ FROM wf_diagram WHERE id = ?", id).Scan(&code, &name, &model, &options, &order)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +162,7 @@ func (r *Diagrams) PostPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 	}
 
 	// 构建流程图
-	if err := mdg.Publish(tx, id, code, name, mo, op); err != nil {
+	if err := mdg.Publish(tx, id, code, name, order, mo, op); err != nil {
 		return nil, err
 	}
 
