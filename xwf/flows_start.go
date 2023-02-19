@@ -19,7 +19,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 后续节点
-	var backs []ExecuteBackward
+	var backs map[int]ExecuteBackward
 	if err := json.Unmarshal([]byte(ctx.PostFormValue("backwards")), &backs); err != nil {
 		return nil, err
 	}

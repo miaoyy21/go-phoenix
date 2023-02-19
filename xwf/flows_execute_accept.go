@@ -23,7 +23,7 @@ type ExecuteBackward struct {
 
 // PostExecuteAccept 流程执行
 func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	var backs []ExecuteBackward
+	var backs map[int]ExecuteBackward
 
 	id := ctx.PostFormValue("id")           // 流转节点ID
 	values := ctx.PostFormValue("values")   // 表单数据
