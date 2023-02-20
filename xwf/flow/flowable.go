@@ -32,9 +32,9 @@ type ExecuteFlowable interface {
 	RequireRejectComment() bool
 
 	ScopeExecutors(flowId string, values string) (scope []string, err error) // 默认执行者的组织ID
-	CustomExecutors(scope []string) (executors map[string]string, err error) // 执行者范围
+	CustomExecutors(scope []string) (executors []Executor, err error)        // 执行者范围
 
-	ExecuteStart(flowId string, executors map[string]string) error               // 启动执行环节
+	ExecuteStart(flowId string, executors []Executor) error                      // 启动执行环节
 	ExecuteAccept(id string, values string, comment string) error                // 结束执行环节
 	ExecuteReject(id string, flowId string, values string, comment string) error // 驳回执行环节
 }

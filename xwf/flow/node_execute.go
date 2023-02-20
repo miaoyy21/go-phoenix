@@ -38,7 +38,7 @@ func (node *NodeExecute) RequireRejectComment() bool {
 	return node.requireRejectComment
 }
 
-func (node *NodeExecute) ExecuteStart(flowId string, executors map[string]string) error {
+func (node *NodeExecute) ExecuteStart(flowId string, executors []Executor) error {
 	if len(executors) < 1 {
 		return fmt.Errorf("%q 没有选择执行者", node.name)
 	}
@@ -46,7 +46,7 @@ func (node *NodeExecute) ExecuteStart(flowId string, executors map[string]string
 	// 创建待办事项
 	now := asql.GetNow()
 	executedId := asql.GenerateId()
-	for userId, userName := range executors {
+	for _, executor := range executors {
 		query := `
 		INSERT INTO wf_flow_node(
 			id, flow_id_, executed_id_, 
@@ -59,7 +59,7 @@ func (node *NodeExecute) ExecuteStart(flowId string, executors map[string]string
 		args := []interface{}{
 			asql.GenerateId(), flowId, executedId,
 			node.diagramId, node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
-			userId, userName,
+			executor.Id, executor.Name,
 			now, enum.FlowNodeStatusExecuting,
 		}
 

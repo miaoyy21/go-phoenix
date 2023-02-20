@@ -15,8 +15,8 @@ type Backward struct {
 	Category enum.Category `json:"category"` // 分类
 	Routes   []int         `json:"routes"`   // 节点路由
 
-	Executors    map[string]string `json:"executors"`    // 默认执行者
-	Organization []string          `json:"organization"` // 组织ID（部门ID或用户ID）
+	Executors    []flow.Executor `json:"executors"`    // 默认执行者
+	Organization []string        `json:"organization"` // 组织ID（部门ID或用户ID）
 }
 
 func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowId string, values string) (interface{}, error) {
@@ -31,7 +31,7 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowI
 		return nil, err
 	}
 
-	backs := make(map[int]Backward)
+	backs := make([]Backward, 0, len(nodes))
 	exists := make(map[int]struct{})
 	for _, node := range nodes {
 		// 忽略条件分支
@@ -51,13 +51,13 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowI
 			Name:         node.Name(),
 			Category:     node.Category(),
 			Routes:       routes,
-			Executors:    make(map[string]string),
+			Executors:    make([]flow.Executor, 0),
 			Organization: make([]string, 0),
 		}
 
 		// 如果包含结束节点，那么就认为流程结束
 		if _, ok := node.(flow.EndFlowable); ok {
-			backs = map[int]Backward{backward.Key: backward}
+			backs = append(backs, backward)
 			break
 		}
 
@@ -85,7 +85,7 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowI
 		}
 
 		exists[backward.Key] = struct{}{}
-		backs[backward.Key] = backward
+		backs = append(backs, backward)
 	}
 
 	jbs, err := json.MarshalIndent(backs, "", "\t")

@@ -19,7 +19,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 后续节点
-	var backs map[int]ExecuteBackward
+	var backs []ExecuteBackward
 	if err := json.Unmarshal([]byte(ctx.PostFormValue("backwards")), &backs); err != nil {
 		return nil, err
 	}
@@ -102,8 +102,16 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 
 	// 更新流程实例状态
 	statusText := fmt.Sprintf("等待 %s 执行中", strings.Join(users, "  "))
-	query := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
-	args := []interface{}{executed.String(), activated.String(), asql.GetNow(), enum.FlowStatusExecuting, statusText, id}
+
+	now := asql.GetNow()
+	query, args := "invalid", make([]interface{}, 0)
+	if status == enum.FlowStatusDraft {
+		query = "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, start_at_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+		args = []interface{}{executed.String(), activated.String(), now, now, enum.FlowStatusExecuting, statusText, id}
+	} else {
+		query = "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+		args = []interface{}{executed.String(), activated.String(), now, enum.FlowStatusExecuting, statusText, id}
+	}
 	if err := asql.Update(tx, query, args...); err != nil {
 		return nil, err
 	}

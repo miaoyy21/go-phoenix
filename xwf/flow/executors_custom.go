@@ -5,7 +5,7 @@ import (
 	"go-phoenix/base"
 )
 
-func (node *NodeExecute) CustomExecutors(scope []string) (map[string]string, error) {
+func (node *NodeExecute) CustomExecutors(scope []string) ([]Executor, error) {
 	num := 10 // 最多默认执行者数量
 	if node.executorCustomNum > 0 {
 		num = node.executorCustomNum
@@ -18,7 +18,8 @@ func (node *NodeExecute) CustomExecutors(scope []string) (map[string]string, err
 		}
 	}
 
-	executors := make(map[string]string)
+	exists := make(map[string]struct{})
+	executors := make([]Executor, 0, num)
 
 	// 是否自动保存执行者
 	if node.executorSavable {
@@ -35,7 +36,12 @@ func (node *NodeExecute) CustomExecutors(scope []string) (map[string]string, err
 
 		// 返回
 		if len(res) > 0 {
-			return base.ResAsMap(res, true, "executor_user_id_", "executor_user_name_"), nil
+			for _, row := range res {
+				executors = append(executors, Executor{
+					Id:   row["executor_user_id_"],
+					Name: row["executor_user_name_"],
+				})
+			}
 		}
 	}
 
@@ -51,11 +57,12 @@ BREAK:
 		}
 
 		for _, row := range res {
-			if _, ok := executors[row["id"]]; ok {
+			if _, ok := exists[row["id"]]; ok {
 				continue
 			}
 
-			executors[row["id"]] = row["user_name_"]
+			exists[row["id"]] = struct{}{}
+			executors = append(executors, Executor{Id: row["id"], Name: row["user_name_"]})
 			if len(executors) == num {
 				break BREAK
 			}

@@ -153,8 +153,15 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 }
 
 func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
-	query := "SELECT TOP 10 name_, executor_user_name_ FROM wf_flow WHERE id = ? AND status_ = ?"
-	res, err := asql.Select(tx, query, enum.FlowNodeStatusExecuting, flowId)
+	max := 10
+	query := `
+ 		SELECT wf_options_node.name_, wf_flow_node.executor_user_name_ 
+		FROM wf_flow_node, wf_options_node 
+		WHERE wf_flow_node.diagram_id_ = wf_options_node.diagram_id_ 
+			AND wf_flow_node.key_ = wf_options_node.key_ 
+			AND wf_flow_node.flow_id_ = ? AND wf_flow_node.status_ = ?
+	`
+	res, err := asql.Select(tx, query, flowId, enum.FlowNodeStatusExecuting)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +171,14 @@ func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
 		return nil, fmt.Errorf("没有找到流程实例ID%q的执行者", flowId)
 	}
 
+	isMore := false
 	names := make(map[string][]string)
-	for _, row := range res {
+	for i, row := range res {
+		if i >= max {
+			isMore = true
+			break
+		}
+
 		users, ok := names[row["name_"]]
 		if !ok {
 			users = make([]string, 0)
@@ -178,6 +191,11 @@ func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
 	texts := make([]string, 0, len(names))
 	for name, users := range names {
 		texts = append(texts, fmt.Sprintf("[ %s ] %s", name, strings.Join(users, ",")))
+	}
+
+	// 是否超过10个
+	if isMore {
+		texts = append(texts, fmt.Sprintf("等%d位执行者", len(res)-max))
 	}
 
 	return texts, nil

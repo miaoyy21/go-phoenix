@@ -15,15 +15,15 @@ import (
 )
 
 type ExecuteBackward struct {
-	Key       int               `json:"key"`       // 节点
-	Name      string            `json:"name"`      // 名称
-	Routes    []int             `json:"routes"`    // 节点路由
-	Executors map[string]string `json:"executors"` // 执行者
+	Key       int             `json:"key"`       // 节点
+	Name      string          `json:"name"`      // 名称
+	Routes    []int           `json:"routes"`    // 节点路由
+	Executors []flow.Executor `json:"executors"` // 执行者
 }
 
 // PostExecuteAccept 流程执行
 func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	var backs map[int]ExecuteBackward
+	var backs []ExecuteBackward
 
 	id := ctx.PostFormValue("id")           // 流转节点ID
 	values := ctx.PostFormValue("values")   // 表单数据
