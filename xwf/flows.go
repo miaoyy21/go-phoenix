@@ -42,15 +42,22 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	return asql.Select(tx, query, args...)
 }
 
-func (o *Flows) GetValues(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+func (o *Flows) GetModelValues(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.FormValue("id")
 
-	var values string
-	if err := asql.SelectRow(tx, "SELECT values_ FROM wf_flow WHERE id = ?", id).Scan(&values); err != nil {
+	var model, values string
+
+	query := `
+		SELECT wf_options_diagram.model_,wf_flow.values_ 
+		FROM wf_flow, wf_options_diagram 
+		WHERE wf_options_diagram.diagram_id_ = wf_flow.diagram_id_ 
+			AND wf_flow.id = ?
+	`
+	if err := asql.SelectRow(tx, query, id).Scan(&model, &values); err != nil {
 		return nil, err
 	}
 
-	return values, nil
+	return map[string]string{"values": values, "model": model}, nil
 }
 
 type Summary struct {

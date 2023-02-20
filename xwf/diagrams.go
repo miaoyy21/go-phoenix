@@ -35,6 +35,7 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 }
 
 func (r *Diagrams) GetPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	id := ctx.FormValue("id")
 	scope := ctx.FormValue("scope")
 
 	query, args := "invalid", make([]interface{}, 0)
@@ -45,6 +46,18 @@ func (r *Diagrams) GetPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 			FROM wf_options_diagram
 			ORDER BY order_ ASC
 		`
+
+		return asql.Select(tx, query, args...)
+	} else if len(id) > 0 && strings.EqualFold(scope, "MODEL") {
+		var model string
+		query = "SELECT model_ FROM wf_options_diagram WHERE diagram_id_ = ?"
+		args = append(args, id)
+
+		if err := asql.SelectRow(tx, query, args...).Scan(&model); err != nil {
+			return nil, err
+		}
+
+		return model, nil
 	}
 
 	return asql.Select(tx, query, args...)
@@ -162,7 +175,7 @@ func (r *Diagrams) PostPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 	}
 
 	// 构建流程图
-	if err := mdg.Publish(tx, id, code, name, order, mo, op); err != nil {
+	if err := mdg.Publish(tx, id, code, name, model, order, mo, op); err != nil {
 		return nil, err
 	}
 
