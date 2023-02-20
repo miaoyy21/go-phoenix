@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"go-phoenix/asql"
-	"go-phoenix/base"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
 	"go-phoenix/xwf/flow"
@@ -56,9 +55,8 @@ func (o *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 	}
 
 	// 更新流程状态
-	empty := base.NewIntSet([]int{}).String()
-	queryUpdate := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
-	argsUpdate := []interface{}{empty, empty, asql.GetNow(), enum.FlowStatusRevoked, "流程实例发起者 已撤回", id}
+	queryUpdate := "UPDATE wf_flow SET active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+	argsUpdate := []interface{}{asql.GetNow(), enum.FlowStatusRevoked, "流程实例发起者 已撤回", id}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}
