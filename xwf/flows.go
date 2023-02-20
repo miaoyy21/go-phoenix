@@ -209,7 +209,7 @@ func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
 
 	texts := make([]string, 0, len(names))
 	for name, users := range names {
-		texts = append(texts, fmt.Sprintf("[ %s ] %s", name, strings.Join(users, ",")))
+		texts = append(texts, fmt.Sprintf("【%s】%s", name, strings.Join(users, ",")))
 	}
 
 	// 是否超过10个
