@@ -25,7 +25,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN(?,?,?)
-			ORDER BY order_ DESC
+			ORDER BY wf_flow.end_at_, wf_flow.active_at_ DESC, wf_flow.create_at_ DESC
 		`
 		args = append(args, diagramId, ctx.GetUserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
 	default:
@@ -34,7 +34,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ = ?
-			ORDER BY order_ DESC
+			ORDER BY wf_flow.end_at_, wf_flow.active_at_ DESC, wf_flow.create_at_ DESC
 		`
 		args = append(args, diagramId, ctx.GetUserId(), status)
 	}
@@ -153,7 +153,7 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 }
 
 func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
-	max := 10
+	max := 3
 	query := `
  		SELECT wf_options_node.name_, wf_flow_node.executor_user_name_ 
 		FROM wf_flow_node, wf_options_node 
