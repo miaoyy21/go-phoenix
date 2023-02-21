@@ -22,7 +22,17 @@ func (m *SysLogin) GetByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 	}
 
 	org = append(org, ctx.GetUserId())
-	return menusByOrg(tx, org...)
+	menus, err := menusByOrg(tx, org...)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := asql.QueryFlowsExecutingCount(tx, ctx.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{"menus": menus, "executing": count}, nil
 }
 
 func (m *SysLogin) PostByPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

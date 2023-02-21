@@ -24,8 +24,8 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			SELECT id, keyword_, values_md5_, executed_keys_, activated_keys_, 
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
-			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN(?,?,?)
-			ORDER BY wf_flow.end_at_, wf_flow.active_at_ DESC, wf_flow.create_at_ DESC
+			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN (?,?,?)
+			ORDER BY end_at_ DESC, active_at_ DESC, create_at_ DESC
 		`
 		args = append(args, diagramId, ctx.GetUserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
 	default:
@@ -34,7 +34,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ = ?
-			ORDER BY wf_flow.end_at_, wf_flow.active_at_ DESC, wf_flow.create_at_ DESC
+			ORDER BY end_at_ DESC, active_at_ DESC, create_at_ DESC
 		`
 		args = append(args, diagramId, ctx.GetUserId(), status)
 	}
