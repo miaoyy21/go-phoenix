@@ -80,6 +80,12 @@ func (m *SysLogin) PostByPassword(tx *sql.Tx, ctx *handle.Context) (interface{},
 		return nil, err
 	}
 
+	// 记录用户登录时间
+	query = "UPDATE sys_user SET login_at_ = ? WHERE id = ?"
+	if err := asql.Update(tx, query, asql.GetNow(), userId); err != nil {
+		return nil, err
+	}
+
 	res := base.GenerateToken(userId, userCode, userName, departId, departCode, departName, uPwd, ctx.UserAgent(), iExpire)
 	return res, nil
 }
