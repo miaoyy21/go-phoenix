@@ -13,7 +13,7 @@ type NodeBranch struct {
 func (node *NodeBranch) Branch(flowId string) error {
 	now := asql.GetNow()
 	query := `
-		INSERT INTO wf_flow_node(
+		INSERT INTO wf_flow_task(
 			id, flow_id_, diagram_id_, 
 			key_, category_, code_, name_, order_, 
 			executor_user_id_, executor_user_name_, 

@@ -31,7 +31,7 @@ func (node *NodeStart) Start(flowId string, values string, comment string) error
 
 	// 创建开始节点
 	queryNode := `
-		INSERT INTO wf_flow_node(
+		INSERT INTO wf_flow_task(
 			id, flow_id_, diagram_id_, 
 			key_, category_, code_, name_, order_, 
 			executor_user_id_, executor_user_name_, 
@@ -76,8 +76,8 @@ func (node *NodeStart) Revoke(flowId string, values string) error {
 	now := asql.GetNow()
 
 	// 将激活节点作废
-	queryNode := "UPDATE wf_flow_node SET canceled_at_ = ?, status_ = ? WHERE flow_id_ = ? AND status_ = ?"
-	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, flowId, enum.FlowNodeStatusExecuting}
+	queryNode := "UPDATE wf_flow_task SET canceled_at_ = ?, status_ = ?, comment_ = ? WHERE flow_id_ = ? AND status_ = ?"
+	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, "流程发起者已撤回", flowId, enum.FlowNodeStatusExecuting}
 	if err := asql.Update(node.tx, queryNode, argsNode...); err != nil {
 		return err
 	}

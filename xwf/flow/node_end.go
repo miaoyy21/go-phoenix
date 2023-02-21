@@ -24,7 +24,7 @@ func (node *NodeEnd) End(flowId string, values string) error {
 
 	// 创建结束节点
 	query := `
-		INSERT INTO wf_flow_node(
+		INSERT INTO wf_flow_task(
 			id, flow_id_, diagram_id_, 
 			key_, category_, code_, name_, order_, 
 			executor_user_id_, executor_user_name_, 

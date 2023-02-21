@@ -20,8 +20,6 @@ ALTER TABLE wf_options_diagram ADD UNIQUE INDEX wf_options_diagram_UniqueIndex_d
 ALTER TABLE wf_options_node ADD UNIQUE INDEX wf_options_node_UniqueIndex_diagram_id_key (diagram_id_,key_);
 ALTER TABLE wf_options_link ADD UNIQUE INDEX wf_options_link_UniqueIndex_diagram_id_from_key_to_key (diagram_id_,from_key_,to_key_);
 
-ALTER TABLE wf_flow ADD UNIQUE INDEX wf_flow_UniqueIndex_instance_id (instance_id_);
-
 
 
 

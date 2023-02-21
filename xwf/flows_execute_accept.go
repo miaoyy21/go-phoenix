@@ -39,10 +39,10 @@ func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{},
 	var key int
 	var executedKeys, activatedKeys string
 	query := `
-		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_node.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
-		FROM wf_flow_node,wf_flow 
-		WHERE wf_flow.id = wf_flow_node.flow_id_ AND wf_flow_node.id = ? 
-			AND wf_flow_node.executor_user_id_ = ? AND wf_flow_node.status_ = ?
+		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_task.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
+		FROM wf_flow_task,wf_flow 
+		WHERE wf_flow.id = wf_flow_task.flow_id_ AND wf_flow_task.id = ? 
+			AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	`
 	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
 	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &executedKeys, &activatedKeys); err != nil {
@@ -125,7 +125,7 @@ BREAK:
 
 	// 如果状态为结束，那么将激活节点作废
 	if status == enum.FlowStatusFinished {
-		query := "UPDATE wf_flow_node SET status_ = ?, canceled_at_ = ? WHERE instance_id_ = ? AND status_ = ?"
+		query := "UPDATE wf_flow_task SET status_ = ?, canceled_at_ = ? WHERE instance_id_ = ? AND status_ = ?"
 		args := []interface{}{enum.FlowNodeStatusCanceled, now, flowId, enum.FlowNodeStatusExecuting}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err

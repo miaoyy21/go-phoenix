@@ -27,8 +27,14 @@ func (m *SysLogin) GetByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 		return nil, err
 	}
 
-	count, err := asql.QueryFlowsExecutingCount(tx, ctx.GetUserId())
-	if err != nil {
+	var count int
+
+	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
+	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&count); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

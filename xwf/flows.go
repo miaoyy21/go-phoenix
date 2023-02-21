@@ -63,8 +63,8 @@ func (o *Flows) GetModelValues(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 func (o *Flows) GetRecords(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.FormValue("id")
 	query := `
-		SELECT id, name_, executor_user_name_, status_, comment_, activated_at_, canceled_at_,executed_at_
-		FROM wf_flow_node
+		SELECT id, name_, executed_depart_name_, executed_user_name_, status_, comment_, activated_at_, canceled_at_,executed_at_
+		FROM wf_flow_task
 		WHERE flow_id_ = ?
 		ORDER BY order_ ASC
 	`
@@ -174,11 +174,11 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 func (o *Flows) executors(tx *sql.Tx, flowId string) ([]string, error) {
 	max := 3
 	query := `
- 		SELECT wf_options_node.name_, wf_flow_node.executor_user_name_ 
-		FROM wf_flow_node, wf_options_node 
-		WHERE wf_flow_node.diagram_id_ = wf_options_node.diagram_id_ 
-			AND wf_flow_node.key_ = wf_options_node.key_ 
-			AND wf_flow_node.flow_id_ = ? AND wf_flow_node.status_ = ?
+ 		SELECT wf_options_node.name_, wf_flow_task.executor_user_name_ 
+		FROM wf_flow_task, wf_options_node 
+		WHERE wf_flow_task.diagram_id_ = wf_options_node.diagram_id_ 
+			AND wf_flow_task.key_ = wf_options_node.key_ 
+			AND wf_flow_task.flow_id_ = ? AND wf_flow_task.status_ = ?
 	`
 	res, err := asql.Select(tx, query, flowId, enum.FlowNodeStatusExecuting)
 	if err != nil {

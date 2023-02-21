@@ -17,7 +17,7 @@ func (o *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface
 	var key int
 	query := `
 		SELECT diagram_id_, flow_id_, key_
-		FROM wf_flow_node 
+		FROM wf_flow_task 
 		WHERE id = ? AND executor_user_id_ = ? AND status_ = ?
 	`
 	if err := asql.SelectRow(tx, query, id, ctx.GetUserId(), enum.FlowNodeStatusExecuting).Scan(&diagramId, &flowId, &key); err != nil {
