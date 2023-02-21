@@ -52,6 +52,11 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 						isLog = true
 					}
 				}
+			} else if strings.EqualFold(path, "/api/wf/flows") {
+				if strings.EqualFold(params["method"], "Tasks") {
+					menu = "任务中心"
+					isLog = true
+				}
 			}
 
 			// 是否需要写操作日志
@@ -65,7 +70,7 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 		}
 
 		// 是否为有效的Token
-		if !context.HasInWhiteRoute(method, path, params, values) {
+		if !context.hasInWhiteRoute(method, path, params, values) {
 			err := context.Parse()
 			if op != nil {
 				op.SetUserData(context.GetUserId(), context.GetUserCode(), context.GetUserName(), context.GetDepartId(), context.GetDepartCode(), context.GetDepartName())

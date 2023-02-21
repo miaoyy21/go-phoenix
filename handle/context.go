@@ -37,7 +37,7 @@ func NewContext(db *sql.DB, r *http.Request, w http.ResponseWriter) *Context {
 	return &Context{DB: db, Request: r, Writer: w}
 }
 
-func (ctx *Context) HasInWhiteRoute(method string, path string, params map[string]string, values map[string]string) bool {
+func (ctx *Context) hasInWhiteRoute(method string, path string, params map[string]string, values map[string]string) bool {
 	route, ok := whiteRoutes[method][path]
 	if !ok {
 		return false

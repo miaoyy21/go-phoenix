@@ -162,9 +162,6 @@ func Publish(tx *sql.Tx, id, code, name string, smo string, order int64, model M
 	}
 
 	// 删除流程图编译记录
-	if err := asql.Delete(tx, "DELETE FROM wf_options_diagram WHERE diagram_id_ = ?", id); err != nil {
-		return err
-	}
 	if err := asql.Delete(tx, "DELETE FROM wf_options_node WHERE diagram_id_ = ?", id); err != nil {
 		return err
 	}
@@ -174,13 +171,6 @@ func Publish(tx *sql.Tx, id, code, name string, smo string, order int64, model M
 
 	var query string
 	var args []interface{}
-
-	// Insert Diagram Options
-	query = "INSERT INTO wf_options_diagram(id, diagram_id_, diagram_code_, diagram_name_, model_, keyword_, icon_, description_, exceed_days_, start_key_, order_) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-	args = []interface{}{asql.GenerateId(), id, code, name, smo, options.Diagram.Keyword, options.Diagram.Icon, options.Diagram.Description, options.Diagram.ExceedDays, start, order}
-	if err := asql.Insert(tx, query, args...); err != nil {
-		return err
-	}
 
 	// Insert Node Options
 	for _, node := range options.Nodes {
@@ -227,5 +217,33 @@ func Publish(tx *sql.Tx, id, code, name string, smo string, order int64, model M
 		}
 	}
 
-	return nil
+	var published string
+	if err := asql.SelectRow(tx, "SELECT id FROM wf_options_diagram WHERE diagram_id_ = ? ", id).Scan(&published); err != nil {
+		if err == sql.ErrNoRows {
+
+			// Insert Diagram Options
+			query = "INSERT INTO wf_options_diagram(id, diagram_id_, diagram_code_, diagram_name_, model_, keyword_, icon_, description_, exceed_days_, start_key_, order_) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+			args = []interface{}{asql.GenerateId(), id, code, name, smo, options.Diagram.Keyword, options.Diagram.Icon, options.Diagram.Description, options.Diagram.ExceedDays, start, order}
+
+			return asql.Insert(tx, query, args...)
+		}
+
+		return err
+	}
+
+	// Update Diagram Options
+	query = `
+		UPDATE wf_options_diagram 
+		SET diagram_code_ = ?, diagram_name_ = ?, model_ = ?,
+			keyword_ = ?, icon_ = ?, description_ = ?,
+			exceed_days_ = ?, start_key_ = ?, order_ = ?
+		WHERE diagram_id_ = ?
+	`
+	args = []interface{}{code, name, smo,
+		options.Diagram.Keyword, options.Diagram.Icon, options.Diagram.Description,
+		options.Diagram.ExceedDays, start, order,
+		id,
+	}
+
+	return asql.Update(tx, query, args...)
 }
