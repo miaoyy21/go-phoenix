@@ -10,17 +10,17 @@ import (
 
 // PostExecuteBackwards 用户流程的向后流程查询
 func (o *Flows) PostExecuteBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	id := ctx.PostFormValue("id")         // 流转节点ID
-	values := ctx.PostFormValue("values") // 表单数据
+	id := ctx.PostFormValue("id") // 流转节点ID
 
-	var diagramId, flowId string
+	var diagramId, flowId, values string
 	var key int
 	query := `
-		SELECT diagram_id_, flow_id_, key_
-		FROM wf_flow_task 
-		WHERE id = ? AND executor_user_id_ = ? AND status_ = ?
+		SELECT wf_flow_task.diagram_id_, wf_flow_task.flow_id_, wf_flow_task.key_, wf_flow.values_
+		FROM wf_flow_task, wf_flow 
+		WHERE wf_flow_task.flow_id_ = wf_flow.id 
+			AND wf_flow_task.id = ? AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	`
-	if err := asql.SelectRow(tx, query, id, ctx.GetUserId(), enum.FlowNodeStatusExecuting).Scan(&diagramId, &flowId, &key); err != nil {
+	if err := asql.SelectRow(tx, query, id, ctx.GetUserId(), enum.FlowNodeStatusExecuting).Scan(&diagramId, &flowId, &key, &values); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}

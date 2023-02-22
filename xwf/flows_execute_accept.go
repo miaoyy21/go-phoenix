@@ -26,7 +26,6 @@ func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{},
 	var backs []ExecuteBackward
 
 	id := ctx.PostFormValue("id")           // 流转节点ID
-	values := ctx.PostFormValue("values")   // 表单数据
 	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 后续节点
@@ -37,15 +36,15 @@ func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{},
 	// 校验数据是否合法
 	var flowId, diagramId string
 	var key int
-	var executedKeys, activatedKeys string
+	var values, executedKeys, activatedKeys string
 	query := `
-		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_task.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
+		SELECT wf_flow.id, wf_flow.diagram_id_, wf_flow_task.key_, wf_flow.values_, wf_flow.executed_keys_, wf_flow.activated_keys_
 		FROM wf_flow_task,wf_flow 
 		WHERE wf_flow.id = wf_flow_task.flow_id_ AND wf_flow_task.id = ? 
 			AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	`
 	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
-	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &executedKeys, &activatedKeys); err != nil {
+	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &values, &executedKeys, &activatedKeys); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}
@@ -91,6 +90,11 @@ BREAK:
 
 				// Start
 				if route == back.Key {
+					// 是否选择执行者
+					if len(back.Executors) < 1 {
+						return nil, fmt.Errorf("【%s】没有指定执行者", back.Name)
+					}
+
 					activated.Append(route)
 					if err := execute.ExecuteStart(flowId, back.Executors); err != nil {
 						return nil, err
@@ -146,10 +150,10 @@ BREAK:
 	}
 
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE instance_id_ = ?"
+	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
 	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, statusText, flowId}
 	if status == enum.FlowStatusFinished {
-		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ?, status_text_ = ? WHERE instance_id_ = ?"
+		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
 		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, statusText, flowId}
 	}
 

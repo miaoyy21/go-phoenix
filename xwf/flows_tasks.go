@@ -14,7 +14,7 @@ func (o *Flows) GetTasks(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		wf_options_diagram.diagram_code_, wf_options_diagram.diagram_name_, 
 		wf_flow_task.code_, wf_flow_task.name_, 
 		wf_options_diagram.keyword_, wf_flow.keyword_ AS keyword_text_, 
-		wf_flow.values_md5_, wf_flow.executed_keys_, wf_flow.activated_keys_, 
+		wf_flow.executed_keys_, wf_flow.activated_keys_, 
 		wf_flow.status_, wf_flow.status_text_, 
 		wf_flow_task.status_ AS task_status_, wf_flow_task.comment_, 
 		wf_flow.create_depart_name_, wf_flow.create_user_name_,

@@ -2,7 +2,6 @@ package xwf
 
 import (
 	"database/sql"
-	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/enum"
@@ -87,13 +86,6 @@ func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowI
 		exists[backward.Key] = struct{}{}
 		backs = append(backs, backward)
 	}
-
-	jbs, err := json.MarshalIndent(backs, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-
-	logrus.Debugf("backs are %s", string(jbs))
 
 	return backs, nil
 }

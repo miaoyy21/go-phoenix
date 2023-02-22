@@ -21,7 +21,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	switch status {
 	case "DraftRevokedRejected":
 		query = `
-			SELECT id, keyword_, values_md5_, executed_keys_, activated_keys_, 
+			SELECT id, keyword_, executed_keys_, activated_keys_, 
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN (?,?,?)
@@ -30,7 +30,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		args = append(args, diagramId, ctx.GetUserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
 	default:
 		query = `
-			SELECT id, keyword_, values_md5_, executed_keys_, activated_keys_, 
+			SELECT id, keyword_, executed_keys_, activated_keys_, 
 				status_, status_text_, create_at_, start_at_, active_at_, end_at_ 
 			FROM wf_flow 
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ = ?
@@ -63,7 +63,7 @@ func (o *Flows) GetModelValues(tx *sql.Tx, ctx *handle.Context) (interface{}, er
 func (o *Flows) GetRecords(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.FormValue("id")
 	query := `
-		SELECT id, name_, executed_depart_name_, executed_user_name_, status_, comment_, activated_at_, canceled_at_,executed_at_
+		SELECT id, name_, executor_user_name_, executed_depart_name_, executed_user_name_, status_, comment_, activated_at_, canceled_at_,executed_at_
 		FROM wf_flow_task
 		WHERE flow_id_ = ?
 		ORDER BY order_ ASC
@@ -120,7 +120,6 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 
 	id := ctx.PostFormValue("id")
 	values := ctx.PostFormValue("values_")
-	valuesMd5 := ctx.PostFormValue("values_md5_")
 	keyword := ctx.PostFormValue("keyword_")
 	diagramId := ctx.PostFormValue("diagram_id_")
 
@@ -139,15 +138,15 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		// 创建流程实例
 		query = `
 			INSERT INTO wf_flow(
-				id, values_, values_md5_, diagram_id_, keyword_, 
+				id, values_, diagram_id_, keyword_, 
 				start_key_, status_, status_text_, order_, create_at_,
 				create_depart_id_, create_depart_code_, create_depart_name_,
 				create_user_id_, create_user_code_, create_user_name_
 			)
-			VALUES(?,?,?,?,?, ?,?,?,?,?, ?,?,?, ?,?,?)
+			VALUES(?,?,?,?, ?,?,?,?,?, ?,?,?, ?,?,?)
 		`
 		args := []interface{}{
-			newId, values, valuesMd5, diagramId, keyword,
+			newId, values, diagramId, keyword,
 			key, enum.FlowStatusDraft, "等待流程实例启动", asql.GenerateOrderId(), now,
 			ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(),
 			ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(),
@@ -159,8 +158,8 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 
 		return map[string]interface{}{"status": "success", "id": newId}, nil
 	case "update":
-		query := "UPDATE wf_flow SET values_ = ?, values_md5_ = ?, keyword_ = ? WHERE id = ?"
-		args := []interface{}{values, valuesMd5, keyword, id}
+		query := "UPDATE wf_flow SET values_ = ?, keyword_ = ? WHERE id = ?"
+		args := []interface{}{values, keyword, id}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err
 		}
