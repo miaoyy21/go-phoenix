@@ -14,21 +14,20 @@ import (
 // PostExecuteReject 流程驳回
 func (o *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	id := ctx.PostFormValue("id")           // 流转节点ID
-	values := ctx.PostFormValue("values")   // 表单数据
 	comment := ctx.PostFormValue("comment") // 审批意见
 
 	// 校验数据是否合法
 	var flowId, diagramId string
 	var key int
-	var executedKeys, activatedKeys string
+	var values, executedKeys, activatedKeys string
 	query := `
-		SELECT wf_flow.flow_id_, wf_flow.diagram_id_, wf_flow_task.key_, wf_flow.executed_keys_, wf_flow.activated_keys_
+		SELECT wf_flow.id, wf_flow.diagram_id_, wf_flow_task.key_, wf_flow.values_, wf_flow.executed_keys_, wf_flow.activated_keys_
 		FROM wf_flow_task,wf_flow 
 		WHERE wf_flow.id = wf_flow_task.flow_id_ AND wf_flow_task.id = ? 
 			AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	`
 	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
-	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &executedKeys, &activatedKeys); err != nil {
+	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &values, &executedKeys, &activatedKeys); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")
 		}
@@ -67,8 +66,8 @@ func (o *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{},
 	statusText := fmt.Sprintf("[%s]%s 已驳回", node.Name(), ctx.GetUserName())
 
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE flow_id_ = ?"
-	argsUpdate := []interface{}{values, base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, statusText, flowId}
+	queryUpdate := "UPDATE wf_flow SET activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+	argsUpdate := []interface{}{base.NewIntSet([]int{key}).String(), asql.GetNow(), enum.FlowStatusRejected, statusText, flowId}
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
 		return nil, err
 	}

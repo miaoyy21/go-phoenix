@@ -129,7 +129,7 @@ BREAK:
 
 	// 如果状态为结束，那么将激活节点作废
 	if status == enum.FlowStatusFinished {
-		query := "UPDATE wf_flow_task SET status_ = ?, canceled_at_ = ? WHERE instance_id_ = ? AND status_ = ?"
+		query := "UPDATE wf_flow_task SET status_ = ?, canceled_at_ = ? WHERE flow_id_ = ? AND status_ = ?"
 		args := []interface{}{enum.FlowNodeStatusCanceled, now, flowId, enum.FlowNodeStatusExecuting}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err
@@ -150,11 +150,11 @@ BREAK:
 	}
 
 	// 更新流程状态
-	queryUpdate := "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
-	argsUpdate := []interface{}{values, executed.String(), activated.String(), now, status, statusText, flowId}
+	queryUpdate := "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+	argsUpdate := []interface{}{executed.String(), activated.String(), now, status, statusText, flowId}
 	if status == enum.FlowStatusFinished {
-		queryUpdate = "UPDATE wf_flow SET values_ = ?, executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
-		argsUpdate = []interface{}{values, executed.String(), activated.String(), now, now, status, statusText, flowId}
+		queryUpdate = "UPDATE wf_flow SET executed_keys_ = ?, activated_keys_ = ?, active_at_ = ?, end_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
+		argsUpdate = []interface{}{executed.String(), activated.String(), now, now, status, statusText, flowId}
 	}
 
 	if err := asql.Update(tx, queryUpdate, argsUpdate...); err != nil {
