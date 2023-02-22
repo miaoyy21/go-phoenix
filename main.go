@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-phoenix/base"
 	"go-phoenix/xsys"
+	"net"
 	"os"
 	"runtime"
 
@@ -88,8 +89,9 @@ func main() {
 	handle.AddWhiteRoute("GET", "/api/sys/users", map[string]string{"scope": "LOGIN"}, map[string]string{})
 	handle.AddWhiteRoute("POST", "/api/sys/login", map[string]string{"method": "ByPassword"}, map[string]string{})
 
-	logrus.Infof("Start Listen %s ......", "127.0.0.1:8080")
-	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
+	addr := net.JoinHostPort(base.Config.Host, base.Config.Port)
+	logrus.Infof("Start Listen %s ......", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		logrus.Errorf("Listen Failure %s", err.Error())
 	}
 }

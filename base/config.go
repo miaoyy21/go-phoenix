@@ -22,6 +22,9 @@ type config struct {
 	AesKey string `json:"aesKey"`
 	AesIv  string `json:"aesIv"`
 
+	Host string `json:"host"`
+	Port string `json:"port"`
+
 	DBDriver     string `json:"dbDriver"`
 	DBDataSource string `json:"DBDataSource"`
 
