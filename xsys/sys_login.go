@@ -27,18 +27,18 @@ func (m *SysLogin) GetByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 		return nil, err
 	}
 
-	var count int
+	var tasks int
 
 	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&count); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
+	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&tasks); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, err
 		}
 
-		return nil, err
+		tasks = 0
 	}
 
-	return map[string]interface{}{"menus": menus, "executing": count}, nil
+	return map[string]interface{}{"menus": menus, "tasks": tasks}, nil
 }
 
 func (m *SysLogin) PostByPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

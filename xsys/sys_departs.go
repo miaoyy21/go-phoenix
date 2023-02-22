@@ -46,13 +46,13 @@ func (o *SysDeparts) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		}
 	} else if strings.EqualFold(scope, "ORGANIZATION") {
 		query = `
-			SELECT id, name_, type_, parent_name_
+			SELECT id, name_, type_, parent_id_, parent_name_
 			FROM (
-				SELECT T.id, T.name_, T.order_, 'depart' AS type_, CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END AS parent_name_
+				SELECT T.id, T.name_, T.order_, 'depart' AS type_, T.parent_id_, CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END AS parent_name_
 				FROM sys_depart T
 					LEFT JOIN sys_depart X ON T.parent_id_ = X.id
 				UNION ALL
-				SELECT T.id, T.user_name_, T.order_, 'user', CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END
+				SELECT T.id, T.user_name_, T.order_, 'user', T.depart_id_, CASE WHEN X.id IS NULL THEN '-' ELSE X.name_ END
 				FROM sys_user T
 					LEFT JOIN sys_depart X ON T.depart_id_ = X.id
 			) TX
