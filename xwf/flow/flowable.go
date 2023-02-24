@@ -22,6 +22,7 @@ type StartFlowable interface {
 
 	Start(flowId string, values string, comment string) error
 	Revoke(flowId string, values string) error
+	Remove(flowId string, values string) error
 }
 
 // ExecuteFlowable 执行环节

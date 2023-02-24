@@ -38,6 +38,7 @@ func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowab
 	var rejectable, requireRejectComment, revocable bool
 	var executorCustomNum, executorSelectableNum int
 	var executorSavable bool
+	var onRemoveScript string
 	var onRejectScript, onRevokeScript string
 	var onBeforeScript, onAfterScript string
 	var executorUsers, executorNameUsers string
@@ -47,7 +48,7 @@ func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowab
 
 	query := `
 		SELECT category_, code_, name_, 
-			rejectable_, require_reject_comment_, revocable_,
+			rejectable_, require_reject_comment_, revocable_, on_remove_script_,
 			on_before_script_, on_after_script_, on_reject_script_, on_revoke_script_,
 			executor_custom_num_, executor_selectable_num_, executor_savable_,
 			executor_users_, executor_name_users_, 
@@ -60,7 +61,7 @@ func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowab
 	args := []interface{}{diagramId, key}
 	if err := asql.SelectRow(tx, query, args...).Scan(
 		&category, &code, &name,
-		&rejectable, &requireRejectComment, &revocable,
+		&rejectable, &requireRejectComment, &revocable, &onRemoveScript,
 		&onBeforeScript, &onAfterScript, &onRejectScript, &onRevokeScript,
 		&executorCustomNum, &executorSelectableNum, &executorSavable,
 		&executorUsers, &executorNameUsers,
@@ -91,6 +92,7 @@ func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowab
 			Node:           node,
 			revocable:      revocable,
 			onRevokeScript: onRevokeScript,
+			onRemoveScript: onRemoveScript,
 		}, nil
 	case enum.CategoryEnd:
 		return &NodeEnd{Node: node}, nil

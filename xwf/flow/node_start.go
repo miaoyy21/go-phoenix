@@ -12,6 +12,7 @@ type NodeStart struct {
 
 	revocable      bool
 	onRevokeScript string
+	onRemoveScript string
 }
 
 func (node *NodeStart) Revocable() bool {
@@ -78,6 +79,27 @@ func (node *NodeStart) Revoke(flowId string, values string) error {
 	// 将激活节点作废
 	queryNode := "UPDATE wf_flow_task SET canceled_at_ = ?, status_ = ?, comment_ = ? WHERE flow_id_ = ? AND status_ = ?"
 	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, "流程发起者已撤回", flowId, enum.FlowNodeStatusExecuting}
+	if err := asql.Update(node.tx, queryNode, argsNode...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (node *NodeStart) Remove(flowId string, values string) error {
+
+	// 驳回脚本
+	if len(node.onRemoveScript) > 0 {
+		if _, err := rujs.Run(node.tx, node.ctx, node.onRemoveScript, 0, flowReg(node, values)); err != nil {
+			return err
+		}
+	}
+
+	now := asql.GetNow()
+
+	// 将激活节点作废
+	queryNode := "UPDATE wf_flow_task SET canceled_at_ = ?, status_ = ?, comment_ = ? WHERE flow_id_ = ? AND status_ = ?"
+	argsNode := []interface{}{now, enum.FlowNodeStatusCanceled, "流程发起者已删除流程实例", flowId, enum.FlowNodeStatusExecuting}
 	if err := asql.Update(node.tx, queryNode, argsNode...); err != nil {
 		return err
 	}

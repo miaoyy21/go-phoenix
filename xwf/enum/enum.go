@@ -27,6 +27,7 @@ var (
 	FlowStatusExecuting FlowStatus = "Executing"
 	FlowStatusRejected  FlowStatus = "Rejected"
 	FlowStatusFinished  FlowStatus = "Finished"
+	FlowStatusDiscarded FlowStatus = "Discarded"
 )
 
 type FlowNodeStatus string

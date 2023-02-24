@@ -16,6 +16,7 @@ type OptionsNode struct {
 	OnAfterScript  string `json:"on_after_script_,omitempty"`
 	OnRejectScript string `json:"on_reject_script_,omitempty"`
 	OnRevokeScript string `json:"on_revoke_script_,omitempty"`
+	OnRemoveScript string `json:"on_remove_script_,omitempty"`
 
 	ExecutorCustomNum     string              `json:"executor_custom_num_,omitempty"`
 	ExecutorSelectableNum string              `json:"executor_selectable_num_,omitempty"`

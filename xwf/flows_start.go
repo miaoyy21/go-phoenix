@@ -31,7 +31,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 		return nil, err
 	}
 
-	// 只能启动 草稿、撤回和驳回的流程
+	// 只能启动 草稿、撤回和驳回 的流程实例
 	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
 		return nil, fmt.Errorf("流程实例已启动，当前状态为%q", status)
 	}

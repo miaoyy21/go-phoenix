@@ -177,18 +177,18 @@ func Publish(tx *sql.Tx, id, code, name string, smo string, order int64, model M
 		query = `
 			INSERT INTO wf_options_node(id, diagram_id_, key_, category_, code_, name_,
 				rejectable_, require_reject_comment_, revocable_, 
-				on_reject_script_,on_revoke_script_, 
+				on_reject_script_,on_revoke_script_, on_remove_script_,
 				on_before_script_, on_after_script_, 
 				executor_custom_num_, executor_selectable_num_, executor_savable_,
 				executor_users_, executor_name_users_, 
 				executor_departs_, executor_name_departs_, 
 				executor_roles_, executor_name_roles_, 
 				executor_policy_, executor_script_)
-			VALUES (?,?,?,?,?,?, ?,?,?, ?,?, ?,?, ?,?,?, ?,?, ?,?, ?,?, ?,?)`
+			VALUES (?,?,?,?,?,?, ?,?,?, ?,?,?, ?,?, ?,?,?, ?,?, ?,?, ?,?, ?,?)`
 		args = []interface{}{
 			asql.GenerateId(), id, node.Key, node.Category, node.Code, names[node.Key],
 			node.Rejectable, node.RequireRejectComment, node.Revocable,
-			node.OnRejectScript, node.OnRevokeScript,
+			node.OnRejectScript, node.OnRevokeScript, node.OnRemoveScript,
 			node.OnBeforeScript, node.OnAfterScript,
 			node.ExecutorCustomNum, node.ExecutorSelectableNum, node.ExecutorSavable,
 			node.ExecutorUsers, node.ExecutorNameUsers,
