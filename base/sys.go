@@ -70,7 +70,7 @@ func System(w http.ResponseWriter, r *http.Request) {
 		buf.WriteString("Disk Usage :  --\n")
 	} else {
 		buf.WriteString(fmt.Sprintf("Disk Used Percent :  %.2f%%\n", dUsage.UsedPercent))
-		buf.WriteString(fmt.Sprintf("Disk Usage :  Total %.2f GB, Used %.2f GB, Free %.2f GB", float64(dUsage.Total)/1e9, float64(dUsage.Used)/1e9, float64(dUsage.Free)/1e9))
+		buf.WriteString(fmt.Sprintf("Disk Usage :  Total %.2f GB, Used %.2f GB, Free %.2f GB", float64(dUsage.Total)/float64(1<<30), float64(dUsage.Used)/float64(1<<30), float64(dUsage.Free)/float64(1<<30)))
 	}
 	buf.WriteByte('\n')
 
