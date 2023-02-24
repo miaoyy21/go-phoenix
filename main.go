@@ -57,6 +57,7 @@ func main() {
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
 
+	http.HandleFunc("/api/system", base.System)
 	http.Handle("/api/sys/login", handle.Handler(db, &xsys.SysLogin{}))                          // 登录
 	http.Handle("/api/sys/setting", handle.Handler(db, &xsys.SysSetting{}))                      // 系统设置
 	http.Handle("/api/sys/roles", handle.Handler(db, &xsys.SysRoles{}))                          // 角色
