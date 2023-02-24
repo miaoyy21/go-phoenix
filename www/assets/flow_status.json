@@ -22,5 +22,9 @@
     {
         "id": "Finished",
         "value": "已结束"
+    },
+    {
+        "id": "Discarded",
+        "value": "已删除"
     }
 ]
