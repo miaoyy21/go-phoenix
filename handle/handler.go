@@ -83,7 +83,7 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 			}
 
 			if !strings.EqualFold(path, "/api/sys/operate_logs") {
-				op.success(string(bs))
+				op.success(bs)
 			}
 
 			if _, err := w.Write(bs); err != nil {

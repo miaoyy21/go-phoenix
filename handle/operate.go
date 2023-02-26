@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -50,24 +49,14 @@ func (op *Operate) refresh() error {
 	if err != nil {
 		return err
 	}
-
-	if len(bsParams) <= 1024 {
-		op.params = string(bsParams)
-	} else {
-		op.params = formatSize(len(bsParams))
-	}
+	op.params = formatBytesWithSize(bsParams)
 
 	// Values
 	bsValues, err := json.Marshal(values)
 	if err != nil {
 		return err
 	}
-
-	if len(bsValues) <= 1024 {
-		op.values = string(bsValues)
-	} else {
-		op.values = formatSize(len(bsValues))
-	}
+	op.params = formatBytesWithSize(bsValues)
 
 	// Using Menu
 	menu, err := op.ctx.GetMenu()
@@ -91,7 +80,11 @@ func (op *Operate) error(err error) {
 	op.save()
 }
 
-func formatSize(size int) string {
+func formatBytesWithSize(bytes []byte) string {
+	size := len(bytes)
+	if len(bytes) <= 1024 {
+		return string(bytes)
+	}
 	if size < 1<<10 {
 		return fmt.Sprintf("%d B", size)
 	} else if size < 1<<20 {
@@ -103,13 +96,9 @@ func formatSize(size int) string {
 	return fmt.Sprintf("%.2f GB", float64(size)/(1<<30))
 }
 
-func (op *Operate) success(msg string) {
+func (op *Operate) success(bytes []byte) {
 	op.status = "success"
-	if op.ctx.Method == http.MethodGet {
-		op.message = formatSize(len(msg))
-	} else {
-		op.message = msg
-	}
+	op.message = formatBytesWithSize(bytes)
 
 	op.save()
 }
