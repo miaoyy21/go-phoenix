@@ -7,6 +7,7 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -14,6 +15,18 @@ import (
 
 func System(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
+
+	// Network Addresses
+	ars, err := net.InterfaceAddrs()
+	if err != nil {
+		buf.WriteString("Network End Point Addresses:  --\n")
+	} else {
+		buf.WriteString("Network End Point Addresses:\n")
+		for index, a := range ars {
+			buf.WriteString(fmt.Sprintf("\tAddress %02d:  [%s] %s\n", index+1, a.Network(), a))
+		}
+	}
+	buf.WriteByte('\n')
 
 	// Host
 	hState, err := host.Info()
@@ -42,7 +55,7 @@ func System(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		buf.WriteString("CPU States :  --\n")
 	} else {
-		buf.WriteString(fmt.Sprintf("CPU %d States :\n", len(iStates)))
+		buf.WriteString("CPU States :\n")
 		for index, iState := range iStates {
 			buf.WriteString(fmt.Sprintf("\tCPU %d :  %s %d Cores\n", index+1, iState.ModelName, iState.Cores))
 		}
