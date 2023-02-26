@@ -104,7 +104,7 @@ func getCaller(r *http.Request, md interface{}) (reflect.Value, error) {
 		return get, nil
 	}
 
-	// Some?
+	// Some Other?
 	some := reflect.ValueOf(md).MethodByName("Any")
 	if some.IsValid() {
 		return some, nil
@@ -113,23 +113,23 @@ func getCaller(r *http.Request, md interface{}) (reflect.Value, error) {
 	return reflect.Value{}, fmt.Errorf("没找到与请求方法对应的执行方法 %s%s ", mth, xth)
 }
 
-func handlerError(op *Operate, w http.ResponseWriter, err error) {
+func handlerError(op *Operate, w http.ResponseWriter, msg error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 
 	// 记录错误日志
-	logrus.Error(err)
+	logrus.Error(msg)
 	if op != nil {
-		op.error(err)
+		op.error(msg)
 	}
 
-	bs, erx := json.Marshal(map[string]interface{}{"status": "error", "error": err.Error()})
-	if erx != nil {
-		logrus.Errorf("Handler Error Failure %s", erx.Error())
+	bs, err := json.Marshal(map[string]interface{}{"status": "error", "error": msg.Error()})
+	if err != nil {
+		logrus.Errorf("Handler Error Failure %s", err.Error())
 		return
 	}
 
-	if _, erv := w.Write(bs); erv != nil {
-		logrus.Errorf("HTTP Write Failure %s", erv.Error())
+	if _, err := w.Write(bs); err != nil {
+		logrus.Errorf("HTTP Write Failure %s", err.Error())
 	}
 }
