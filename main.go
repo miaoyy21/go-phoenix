@@ -57,8 +57,8 @@ func main() {
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
 
-	http.Handle("/api/sys", handle.Handler(db, &xsys.Sys{}))
-	http.Handle("/api/sys/login", handle.Handler(db, &xsys.SysLogin{}))                          // 登录
+	http.Handle("/api/sys", handle.Handler(db, &xsys.Sys{}))                                     // 加载系统（登录前）
+	http.Handle("/api/sys/system", handle.Handler(db, &xsys.SysSystem{}))                        // 系统信息
 	http.Handle("/api/sys/setting", handle.Handler(db, &xsys.SysSetting{}))                      // 系统设置
 	http.Handle("/api/sys/roles", handle.Handler(db, &xsys.SysRoles{}))                          // 角色
 	http.Handle("/api/sys/departs", handle.Handler(db, &xsys.SysDeparts{}))                      // 部门
@@ -83,12 +83,6 @@ func main() {
 
 	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{})) // 流程图
 	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))       // 流程执行
-
-	// 路由白名单
-	//handle.AddWhiteRoute("GET", "/api/sys/dict_items", map[string]string{"scope": "ALL"}, map[string]string{})
-	//handle.AddWhiteRoute("GET", "/api/sys/setting", map[string]string{"scope": "LOGIN"}, map[string]string{})
-	//handle.AddWhiteRoute("GET", "/api/sys/users", map[string]string{"scope": "LOGIN"}, map[string]string{})
-	//handle.AddWhiteRoute("POST", "/api/sys/login", map[string]string{"method": "ByPassword"}, map[string]string{})
 
 	addr := net.JoinHostPort(base.Config.Host, base.Config.Port)
 	logrus.Infof("Start Listen %s ......", addr)

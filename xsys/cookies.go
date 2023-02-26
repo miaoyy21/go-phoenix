@@ -1,11 +1,12 @@
-package handle
+package xsys
 
 import (
+	"go-phoenix/handle"
 	"net/http"
 	"time"
 )
 
-func setCookie(w http.ResponseWriter, name string, value string, expire time.Time) {
+func setCookie(ctx *handle.Context, name string, value string, expire time.Time) {
 	cookie := &http.Cookie{
 		Name:     name,
 		Path:     "/",
@@ -14,5 +15,5 @@ func setCookie(w http.ResponseWriter, name string, value string, expire time.Tim
 		Expires:  expire,
 	}
 
-	http.SetCookie(w, cookie)
+	http.SetCookie(ctx.Writer, cookie)
 }

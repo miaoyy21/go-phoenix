@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func GenerateToken(userId, userCode, userName, departId, departCode, departName, password, userAgent string, iExpire int64) map[string]string {
+func GenerateToken(userId, userCode, userName, departId, departCode, departName, password, userAgent string, iExpire int64) string {
 
 	src := make([]string, 0, 3)
 
@@ -26,16 +26,6 @@ func GenerateToken(userId, userCode, userName, departId, departCode, departName,
 	src = append(src, expire)
 
 	bytes := Config.AesStream([]byte(strings.Join(src, ",")))
-	res := map[string]string{
-		"token":       base64.StdEncoding.EncodeToString(bytes),
-		"user_id":     userId,
-		"user_code":   userCode,
-		"user_name":   userName,
-		"depart_id":   departId,
-		"depart_code": departCode,
-		"depart_name": departName,
-		"expire":      expire,
-	}
 
-	return res
+	return base64.StdEncoding.EncodeToString(bytes)
 }

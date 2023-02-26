@@ -1,16 +1,13 @@
 package xsys
 
 import (
-	"bytes"
 	"database/sql"
-	"fmt"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/disk"
-	"github.com/shirou/gopsutil/v3/host"
+	"encoding/base64"
+	"errors"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
-	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -37,79 +34,104 @@ func (o *Sys) GetSetting(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	return base.ResAsMap(res, true, "field_", "value_"), nil
 }
 
-func (o *Sys) GetSystem(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	buf := new(bytes.Buffer)
+func (o *Sys) GetDepart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	accountId := ctx.FormValue("account_id")
 
-	// Network Addresses
-	ars, err := net.InterfaceAddrs()
-	if err != nil {
-		buf.WriteString("Network End Point Addresses:  --\n")
-	} else {
-		buf.WriteString("Network End Point Addresses:\n")
-		for index, a := range ars {
-			buf.WriteString(fmt.Sprintf("\tAddress %02d:  [%s] %s\n", index+1, a.Network(), a))
-		}
-	}
-	buf.WriteByte('\n')
+	query := `	
+		SELECT sys_depart.id, sys_depart.name_
+		FROM sys_user,sys_depart
+		WHERE sys_user.depart_id_ = sys_depart.id
+			AND sys_user.account_id_ = ?
+		ORDER BY sys_depart.order_ ASC
+	`
 
-	// Host
-	hState, err := host.Info()
-	if err != nil {
-		buf.WriteString("Host State:  --\n")
-	} else {
-		buf.WriteString(fmt.Sprintf("Host ID:  %s\n", hState.HostID))
-		buf.WriteString(fmt.Sprintf("Host Name:  %s\n", hState.Hostname))
-		buf.WriteByte('\n')
-		buf.WriteString(fmt.Sprintf("Operating System:  %s\n", hState.OS))
-		buf.WriteString(fmt.Sprintf("Platform:  %s\n", hState.Platform))
-		buf.WriteString(fmt.Sprintf("Platform Family:  %s\n", hState.PlatformFamily))
-		buf.WriteString(fmt.Sprintf("Platform Version:  %s\n", hState.PlatformVersion))
-		buf.WriteByte('\n')
-		buf.WriteString(fmt.Sprintf("Kernel Architecture:  %s\n", hState.KernelArch))
-		buf.WriteString(fmt.Sprintf("Kernel Version:  %s\n", hState.KernelVersion))
-		buf.WriteByte('\n')
-		buf.WriteString(fmt.Sprintf("Boot Time:  %s\n", time.Unix(int64(hState.BootTime), 0).Format("2006-01-02 15:04:05")))
-		buf.WriteString(fmt.Sprintf("Now Time:  %s\n", time.Now().Local().Format("2006-01-02 15:04:05")))
-		buf.WriteString(fmt.Sprintf("Up Time:  %s\n", time.Duration(hState.Uptime*1e9)))
-	}
-	buf.WriteByte('\n')
+	return asql.Select(tx, query, accountId)
+}
 
-	// CPU
-	iStates, err := cpu.Info()
+func (o *Sys) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+
+	// 获取用户的部门ID
+	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.GetDepartId())
 	if err != nil {
-		buf.WriteString("CPU States :  --\n")
-	} else {
-		buf.WriteString("CPU States :\n")
-		for index, iState := range iStates {
-			buf.WriteString(fmt.Sprintf("\tCPU %d :  %s %d Cores\n", index+1, iState.ModelName, iState.Cores))
-		}
+		return nil, err
 	}
 
-	// CPU Percents
-	cpuPercents, err := cpu.Percent(0, true)
+	org = append(org, ctx.GetUserId())
+	menus, err := menusByOrg(tx, org...)
 	if err != nil {
-		buf.WriteString("CPU Percents :  --\n")
-	} else {
-		percents := make([]string, 0, len(cpuPercents))
-		var total float64
-		for _, cpuPercent := range cpuPercents {
-			total = total + cpuPercent
-			percents = append(percents, fmt.Sprintf("%.2f%%", cpuPercent))
+		return nil, err
+	}
+
+	var tasks int
+
+	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
+	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&tasks); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, err
 		}
 
-		buf.WriteString(fmt.Sprintf("CPU Average Percent :  %.2f%%\n", total/float64(len(cpuPercents))))
-		buf.WriteString(fmt.Sprintf("CPU Percents :  %s\n", strings.Join(percents, ", ")))
+		tasks = 0
 	}
-	buf.WriteByte('\n')
 
-	dUsage, err := disk.Usage("/")
+	return map[string]interface{}{"menus": menus, "tasks": tasks}, nil
+}
+
+func (o *Sys) PostLoginByPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	accountId := ctx.PostFormValue("account_id")
+	password := ctx.PostFormValue("password")
+	departId := ctx.PostFormValue("depart_id")
+
+	var uPwd string
+	var userId, userCode, userName, departCode, departName string
+	query := `
+		SELECT sys_user.id, sys_user.user_code_, sys_user.user_name_, sys_depart.code_, sys_depart.name_, sys_user.password_ 
+		FROM sys_user, sys_depart
+		WHERE sys_user.depart_id_ = sys_depart.id
+			AND sys_user.account_id_ = ? AND sys_user.depart_id_ = ?
+	`
+	args := []interface{}{accountId, departId}
+	if err := asql.SelectRow(tx, query, args...).Scan(&userId, &userCode, &userName, &departCode, &departName, &uPwd); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("无效的登录用户")
+		}
+
+		return nil, err
+	}
+
+	// 密码比较
+	if !strings.EqualFold(uPwd, base.Config.AesEncodeString(password)) {
+		return nil, errors.New("登录密码不正确")
+	}
+
+	// 获取设定的有效时限
+	var sExpire string
+	query = "SELECT value_ FROM sys_setting WHERE field_ = ?"
+	if err := asql.SelectRow(tx, query, "token_expire").Scan(&sExpire); err != nil {
+		return nil, err
+	}
+
+	iExpire, err := strconv.ParseInt(sExpire, 10, 64)
 	if err != nil {
-		buf.WriteString("Disk Usage :  --\n")
-	} else {
-		buf.WriteString(fmt.Sprintf("Disk Used Percent :  %.2f%%\n", dUsage.UsedPercent))
-		buf.WriteString(fmt.Sprintf("Disk Usage :  Total %.2f GB, Used %.2f GB, Free %.2f GB", float64(dUsage.Total)/float64(1<<30), float64(dUsage.Used)/float64(1<<30), float64(dUsage.Free)/float64(1<<30)))
+		return nil, err
 	}
-	buf.WriteByte('\n')
 
-	return buf.String(), nil
+	// 记录用户登录时间
+	query = "UPDATE sys_user SET login_at_ = ? WHERE id = ?"
+	if err := asql.Update(tx, query, asql.GetNow(), userId); err != nil {
+		return nil, err
+	}
+
+	// Token
+	token := base.GenerateToken(userId, userCode, userName, departId, departCode, departName, uPwd, ctx.UserAgent(), iExpire)
+
+	expire := time.Now().Add(time.Duration(iExpire) * time.Second)
+	setCookie(ctx, "PHOENIX_LOGIN_TOKEN", token, expire)
+	setCookie(ctx, "PHOENIX_USER_ID", userId, expire)
+	setCookie(ctx, "PHOENIX_USER_CODE", userCode, expire)
+	setCookie(ctx, "PHOENIX_USER_NAME", base64.StdEncoding.EncodeToString([]byte(userName)), expire)
+	setCookie(ctx, "PHOENIX_DEPART_ID", departId, expire)
+	setCookie(ctx, "PHOENIX_DEPART_CODE", departCode, expire)
+	setCookie(ctx, "PHOENIX_DEPART_NAME", base64.StdEncoding.EncodeToString([]byte(departName)), expire)
+
+	return map[string]string{"status": "success"}, nil
 }

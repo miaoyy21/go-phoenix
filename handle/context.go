@@ -37,39 +37,6 @@ func NewContext(db *sql.DB, r *http.Request, w http.ResponseWriter) *Context {
 	return &Context{DB: db, Request: r, Writer: w}
 }
 
-func (ctx *Context) hasInWhiteRoute(method string, path string, params map[string]string, values map[string]string) bool {
-	route, ok := whiteRoutes[method][path]
-	if !ok {
-		return false
-	}
-
-	// Params
-	for key, value := range route.Params {
-		val, ok := params[key]
-		if !ok {
-			return false
-		}
-
-		if !strings.EqualFold(val, value) {
-			return false
-		}
-	}
-
-	// Values
-	for key, value := range route.Values {
-		val, ok := values[key]
-		if !ok {
-			return false
-		}
-
-		if !strings.EqualFold(val, value) {
-			return false
-		}
-	}
-
-	return true
-}
-
 func (ctx *Context) Parse() error {
 
 	// Token
@@ -303,25 +270,30 @@ func (ctx *Context) GetPath() string {
 	return ctx.URL.Path
 }
 
-// GetUsingMenu 默认从请求地址获取当前打开的界面，否则从Cookie获取
-func (ctx *Context) GetUsingMenu() string {
+// GetMenu 默认从请求地址获取当前打开的界面，否则从Cookie获取
+func (ctx *Context) GetMenu() (menu string, err error) {
 	// Params
-	values, err := url.ParseQuery(ctx.URL.RawQuery)
+	params, err := url.ParseQuery(ctx.URL.RawQuery)
 	if err != nil {
-		return ""
+		return menu, err
 	}
 
-	menu := values.Get("PHOENIX_USING_MENU")
-	if len(menu) < 1 {
-		cookie, err := ctx.Cookie("PHOENIX_USING_MENU")
-		if err != nil {
-			logrus.Errorf("Cookie(%q) ERROR : %s", "PHOENIX_USING_MENU", err.Error())
-		} else {
-			menu = strings.Trim(cookie.Value, "%22")
-		}
+	using := params.Get("PHOENIX_USING_MENU")
+	if len(using) > 1 {
+		return using, nil
 	}
 
-	return menu
+	cookie, err := ctx.Cookie("PHOENIX_USING_MENU")
+	if err != nil {
+		return menu, err
+	}
+
+	newMenu, err := url.QueryUnescape(cookie.Value)
+	if err != nil {
+		return menu, err
+	}
+
+	return strings.Trim(newMenu, "\""), nil
 }
 
 func (ctx *Context) GetParams() map[string]string {

@@ -13,21 +13,11 @@ type SysUsers struct {
 }
 
 func (o *SysUsers) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	accountId := ctx.FormValue("account_id")
 	departId := ctx.FormValue("depart_id")
 	scope := ctx.FormValue("scope")
 
 	query, args := "invalid", make([]interface{}, 0)
-	if strings.EqualFold(scope, "LOGIN") && len(accountId) > 0 {
-		query = `	
-			SELECT sys_depart.id, sys_depart.name_
-			FROM sys_user,sys_depart
-			WHERE sys_user.depart_id_ = sys_depart.id
-				AND sys_user.account_id_ = ?
-			ORDER BY sys_depart.order_ ASC
-		`
-		args = append(args, accountId)
-	} else if len(departId) > 0 && strings.EqualFold(scope, "SIMPLE") {
+	if len(departId) > 0 && strings.EqualFold(scope, "SIMPLE") {
 		query = `
 			SELECT id, user_code_, user_name_, sex_, is_depart_leader_ 
 			FROM sys_user
