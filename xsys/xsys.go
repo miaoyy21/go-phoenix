@@ -1,50 +1,115 @@
 package xsys
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/host"
 	"go-phoenix/asql"
 	"go-phoenix/base"
+	"go-phoenix/handle"
+	"net"
 	"strings"
+	"time"
 )
 
-func menusByOrg(tx *sql.Tx, org ...interface{}) ([]map[string]string, error) {
-	if len(org) <= 0 {
-		return make([]map[string]string, 0), nil
-	}
+type Sys struct {
+}
 
-	// 查询用户和所有上级部门的权限
-	query := fmt.Sprintf("SELECT role_id_ FROM sys_organization_role WHERE organization_id_ IN (?%s)", strings.Repeat(", ?", len(org)-1))
-	rolesRes, err := asql.Select(tx, query, org...)
+func (o *Sys) GetDictionary(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	query := `
+		SELECT sys_dict_item.code_ AS id, sys_dict_kind.code_ AS code, sys_dict_item.name_ AS value
+		FROM sys_dict_kind, sys_dict_item
+		WHERE sys_dict_kind.id = sys_dict_item.kind_id_
+	`
+
+	return asql.Select(tx, query)
+}
+
+func (o *Sys) GetSetting(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	res, err := asql.Select(tx, "SELECT field_, value_ FROM sys_setting")
 	if err != nil {
 		return nil, err
 	}
 
-	// 没有对应角色
-	if len(rolesRes) <= 0 {
-		return make([]map[string]string, 0), nil
-	}
+	return base.ResAsMap(res, true, "field_", "value_"), nil
+}
 
-	// 根据角色查询菜单
-	sRoles := base.NewStringSet(base.ResAsSliceString(rolesRes, "role_id_"))
-	roles := make([]interface{}, 0, len(sRoles.Values()))
-	for _, role := range sRoles.Values() {
-		roles = append(roles, role)
-	}
+func (o *Sys) GetSystem(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	buf := new(bytes.Buffer)
 
-	query = fmt.Sprintf("SELECT menu_id_ FROM sys_role_menu,sys_menu WHERE sys_role_menu.menu_id_ = sys_menu.id AND role_id_ IN (?%s)", strings.Repeat(", ?", len(roles)-1))
-	menusRes, err := asql.Select(tx, query, roles...)
+	// Network Addresses
+	ars, err := net.InterfaceAddrs()
 	if err != nil {
-		return nil, err
+		buf.WriteString("Network End Point Addresses:  --\n")
+	} else {
+		buf.WriteString("Network End Point Addresses:\n")
+		for index, a := range ars {
+			buf.WriteString(fmt.Sprintf("\tAddress %02d:  [%s] %s\n", index+1, a.Network(), a))
+		}
 	}
+	buf.WriteByte('\n')
 
-	// 查询所有菜单，构建菜单树
-	menusFull, err := asql.Select(tx, "SELECT id,menu_,name_,parent_id_,icon_,order_ FROM sys_menu")
+	// Host
+	hState, err := host.Info()
 	if err != nil {
-		return nil, err
+		buf.WriteString("Host State:  --\n")
+	} else {
+		buf.WriteString(fmt.Sprintf("Host ID:  %s\n", hState.HostID))
+		buf.WriteString(fmt.Sprintf("Host Name:  %s\n", hState.Hostname))
+		buf.WriteByte('\n')
+		buf.WriteString(fmt.Sprintf("Operating System:  %s\n", hState.OS))
+		buf.WriteString(fmt.Sprintf("Platform:  %s\n", hState.Platform))
+		buf.WriteString(fmt.Sprintf("Platform Family:  %s\n", hState.PlatformFamily))
+		buf.WriteString(fmt.Sprintf("Platform Version:  %s\n", hState.PlatformVersion))
+		buf.WriteByte('\n')
+		buf.WriteString(fmt.Sprintf("Kernel Architecture:  %s\n", hState.KernelArch))
+		buf.WriteString(fmt.Sprintf("Kernel Version:  %s\n", hState.KernelVersion))
+		buf.WriteByte('\n')
+		buf.WriteString(fmt.Sprintf("Boot Time:  %s\n", time.Unix(int64(hState.BootTime), 0).Format("2006-01-02 15:04:05")))
+		buf.WriteString(fmt.Sprintf("Now Time:  %s\n", time.Now().Local().Format("2006-01-02 15:04:05")))
+		buf.WriteString(fmt.Sprintf("Up Time:  %s\n", time.Duration(hState.Uptime*1e9)))
+	}
+	buf.WriteByte('\n')
+
+	// CPU
+	iStates, err := cpu.Info()
+	if err != nil {
+		buf.WriteString("CPU States :  --\n")
+	} else {
+		buf.WriteString("CPU States :\n")
+		for index, iState := range iStates {
+			buf.WriteString(fmt.Sprintf("\tCPU %d :  %s %d Cores\n", index+1, iState.ModelName, iState.Cores))
+		}
 	}
 
-	// 构建
-	rte := base.NewRelationTree(menusFull, base.ResAsSliceString(menusRes, "menu_id_"))
-	return rte.Build(), nil
+	// CPU Percents
+	cpuPercents, err := cpu.Percent(0, true)
+	if err != nil {
+		buf.WriteString("CPU Percents :  --\n")
+	} else {
+		percents := make([]string, 0, len(cpuPercents))
+		var total float64
+		for _, cpuPercent := range cpuPercents {
+			total = total + cpuPercent
+			percents = append(percents, fmt.Sprintf("%.2f%%", cpuPercent))
+		}
+
+		buf.WriteString(fmt.Sprintf("CPU Average Percent :  %.2f%%\n", total/float64(len(cpuPercents))))
+		buf.WriteString(fmt.Sprintf("CPU Percents :  %s\n", strings.Join(percents, ", ")))
+	}
+	buf.WriteByte('\n')
+
+	dUsage, err := disk.Usage("/")
+	if err != nil {
+		buf.WriteString("Disk Usage :  --\n")
+	} else {
+		buf.WriteString(fmt.Sprintf("Disk Used Percent :  %.2f%%\n", dUsage.UsedPercent))
+		buf.WriteString(fmt.Sprintf("Disk Usage :  Total %.2f GB, Used %.2f GB, Free %.2f GB", float64(dUsage.Total)/float64(1<<30), float64(dUsage.Used)/float64(1<<30), float64(dUsage.Free)/float64(1<<30)))
+	}
+	buf.WriteByte('\n')
+
+	return buf.String(), nil
 }

@@ -5,25 +5,17 @@ import (
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
-	"strings"
 )
 
 type SysDictItems struct {
 }
 
 func (o *SysDictItems) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	scope := ctx.FormValue("scope")
 	kindId := ctx.FormValue("kind_id")
 	kindCode := ctx.FormValue("kind_code")
 
 	query, args := "invalid", make([]interface{}, 0)
-	if strings.EqualFold(scope, "ALL") {
-		query = `
-			SELECT sys_dict_item.code_ AS id, sys_dict_kind.code_ AS code, sys_dict_item.name_ AS value
-			FROM sys_dict_kind, sys_dict_item
-			WHERE sys_dict_kind.id = sys_dict_item.kind_id_
-		`
-	} else if len(kindId) > 0 {
+	if len(kindId) > 0 {
 		query = "SELECT id, kind_id_, code_, name_ FROM sys_dict_item WHERE kind_id_ = ? ORDER BY order_ ASC"
 		args = append(args, kindId)
 	} else if len(kindCode) > 0 {
