@@ -2,11 +2,13 @@ package xsys
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
 	"strings"
+	"time"
 )
 
 type SysUsers struct {
@@ -140,4 +142,76 @@ func (o *SysUsers) PostResetPassword(tx *sql.Tx, ctx *handle.Context) (interface
 	}
 
 	return map[string]interface{}{"status": "success", "id": id}, nil
+}
+
+func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+
+	// 获取用户的部门ID
+	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.GetDepartId())
+	if err != nil {
+		return nil, err
+	}
+
+	org = append(org, ctx.GetUserId())
+	menus, err := menusByOrg(tx, org...)
+	if err != nil {
+		return nil, err
+	}
+
+	var tasks int
+
+	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
+	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&tasks); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		tasks = 0
+	}
+
+	return map[string]interface{}{"menus": menus, "tasks": tasks}, nil
+}
+
+func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	oPwd := ctx.PostFormValue("old_password")
+	nPwd := ctx.PostFormValue("new_password")
+
+	var uPwd string
+	if err := asql.SelectRow(tx, "SELECT sys_user.password_ FROM sys_user WHERE sys_user.id = ?", ctx.GetUserId()).Scan(&uPwd); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("无效的登录用户")
+		}
+
+		return nil, err
+	}
+
+	// 密码比较
+	if !strings.EqualFold(uPwd, base.Config.AesEncodeString(oPwd)) {
+		return nil, errors.New("登录密码不正确")
+	}
+
+	// 配置信息
+	sRes, err := asql.Select(tx, "SELECT field_, value_ FROM sys_setting WHERE field_ IN (?,?,?)", "password_min_length", "password_max_length", "token_expire")
+	if err != nil {
+		return nil, err
+	}
+	setting := base.ResAsMapStringInt(sRes, "field_", "value_")
+
+	// 密码长度
+	if len(nPwd) < setting["password_min_length"] || len(nPwd) > setting["password_max_length"] {
+		return nil, fmt.Errorf("新密码长度不满足条件，要求的长度范围[%d,%d]", setting["password_min_length"], setting["password_max_length"])
+	}
+
+	// 密码加密
+	ePwd := base.Config.AesEncodeString(nPwd)
+	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ? WHERE id = ?", ePwd, ctx.GetUserId()); err != nil {
+		return nil, err
+	}
+
+	// Token
+	token := base.GenerateToken(ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(), ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(), ePwd, ctx.UserAgent(), setting["token_expire"])
+	expire := time.Now().Add(time.Duration(setting["token_expire"]) * time.Second)
+	setCookie(ctx, "PHOENIX_LOGIN_TOKEN", token, expire)
+
+	return map[string]string{"status": "success"}, nil
 }

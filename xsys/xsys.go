@@ -48,34 +48,6 @@ func (o *Sys) GetDepart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	return asql.Select(tx, query, accountId)
 }
 
-func (o *Sys) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-
-	// 获取用户的部门ID
-	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.GetDepartId())
-	if err != nil {
-		return nil, err
-	}
-
-	org = append(org, ctx.GetUserId())
-	menus, err := menusByOrg(tx, org...)
-	if err != nil {
-		return nil, err
-	}
-
-	var tasks int
-
-	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&tasks); err != nil {
-		if err != sql.ErrNoRows {
-			return nil, err
-		}
-
-		tasks = 0
-	}
-
-	return map[string]interface{}{"menus": menus, "tasks": tasks}, nil
-}
-
 func (o *Sys) PostLoginByPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	accountId := ctx.PostFormValue("account_id")
 	password := ctx.PostFormValue("password")
@@ -122,7 +94,7 @@ func (o *Sys) PostLoginByPassword(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// Token
-	token := base.GenerateToken(userId, userCode, userName, departId, departCode, departName, uPwd, ctx.UserAgent(), iExpire)
+	token := base.GenerateToken(userId, userCode, userName, departId, departCode, departName, uPwd, ctx.UserAgent(), int(iExpire))
 
 	expire := time.Now().Add(time.Duration(iExpire) * time.Second)
 	setCookie(ctx, "PHOENIX_LOGIN_TOKEN", token, expire)

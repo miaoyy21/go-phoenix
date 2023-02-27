@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func GenerateToken(userId, userCode, userName, departId, departCode, departName, password, userAgent string, iExpire int64) string {
+func GenerateToken(userId, userCode, userName, departId, departCode, departName, password, userAgent string, iExpire int) string {
 
 	src := make([]string, 0, 3)
 
