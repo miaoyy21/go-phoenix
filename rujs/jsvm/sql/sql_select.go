@@ -65,7 +65,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 获取排序和过滤条件
-	sorts, filters := s.ctx.GetSortsFilters(mapFields)
+	sorts, filters, filtered := s.ctx.GetSortsFilters(mapFields)
 
 	// 获取参数，排除filter和sort
 	newParams := make(map[string]string)
@@ -95,18 +95,26 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 传递的参数
+	mapped := make([]interface{}, 0, len(newParams))
 	for key, value := range newParams {
 		if newKey, ok := mapFields[key]; ok {
-			wheres = append(wheres, fmt.Sprintf("%s = '%s'", newKey, value))
+			wheres = append(wheres, fmt.Sprintf("%s = ?", newKey))
 		} else {
-			wheres = append(wheres, fmt.Sprintf("%s = '%s'", key, value))
+			wheres = append(wheres, fmt.Sprintf("%s = ?", key))
 		}
+
+		mapped = append(mapped, value)
 	}
 
 	// 过滤条件
 	if len(filters) > 0 {
 		wheres = append(wheres, strings.Join(filters, " AND "))
 	}
+
+	// 防止SQL注入
+	arguments := make([]interface{}, 0, len(mapped)+len(filtered))
+	arguments = append(arguments, mapped...)
+	arguments = append(arguments, filtered...)
 
 	/************************** ORDER BY **************************/
 	if len(sorts) > 0 {
@@ -157,13 +165,13 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 
 		// 查询总记录数量
 		var totalCount int
-		if err := asql.SelectRow(s.tx, fmt.Sprintf("SELECT COUNT(1) %s", strings.Join(sqs, " "))).Scan(&totalCount); err != nil {
+		if err := asql.SelectRow(s.tx, fmt.Sprintf("SELECT COUNT(1) %s", strings.Join(sqs, " ")), arguments...).Scan(&totalCount); err != nil {
 			logrus.Panic(err)
 		}
 
 		// 根据分页查询当前页
 		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\tORDER BY %s \n\tLIMIT %d,%d \n", fields, strings.Join(sqs, "\n\t"), orderBy, start, count)
-		data, err := asql.Select(s.tx, query)
+		data, err := asql.Select(s.tx, query, arguments...)
 		if err != nil {
 			logrus.Panic(err)
 		}
@@ -177,7 +185,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 
 	// 不分页
 	query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\tORDER BY %s \n", fields, strings.Join(sqs, "\n\t"), orderBy)
-	data, err := asql.Select(s.tx, query)
+	data, err := asql.Select(s.tx, query, arguments...)
 	if err != nil {
 		logrus.Panic(err)
 	}

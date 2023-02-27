@@ -52,6 +52,11 @@ func main() {
 		logrus.Fatalf("sql.Open() Failure :: %s", err.Error())
 	}
 
+	// Ping ...
+	if err := db.Ping(); err != nil {
+		logrus.Fatalf("db.Ping() Failure :: %s", err.Error())
+	}
+
 	logrus.Info("Connect Database Successful ...")
 
 	// 静态文件

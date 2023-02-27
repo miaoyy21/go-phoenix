@@ -183,15 +183,16 @@ func (ctx *Context) GetNullableFormValue(key string) interface{} {
 	return sParent
 }
 
-func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []string) {
+func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []string, []interface{}) {
 	sorts := make([]string, 0)
 	filters := make([]string, 0)
+	filtered := make([]interface{}, 0)
 
 	// 多列排序时，必须依次从最原始的请求参数中获取排序字段
 	uri, err := url.ParseRequestURI(ctx.RequestURI)
 	if err != nil {
 		logrus.Errorf("url.ParseRequestURI(%s) Failure :: %s", ctx.RequestURI, err.Error())
-		return sorts, filters
+		return sorts, filters, filtered
 	}
 
 	params := strings.Split(uri.RawQuery, "&")
@@ -234,14 +235,16 @@ func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []st
 
 			// 如果为空格，那么过滤全部
 			if newKey, ok := mapFields[col]; ok {
-				filters = append(filters, fmt.Sprintf("UPPER(%s) LIKE '%%%s%%'", newKey, val))
+				filters = append(filters, fmt.Sprintf("UPPER(%s) LIKE ?", newKey))
 			} else {
-				filters = append(filters, fmt.Sprintf("UPPER(%s) LIKE '%%%s%%'", col, val))
+				filters = append(filters, fmt.Sprintf("UPPER(%s) LIKE ?", col))
 			}
+
+			filtered = append(filtered, fmt.Sprintf("%%%s%%", val))
 		}
 	}
 
-	return sorts, filters
+	return sorts, filters, filtered
 }
 
 func (ctx *Context) GetIP() string {
