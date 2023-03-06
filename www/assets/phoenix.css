@@ -54,3 +54,29 @@ span.webix_input_icon.webix_clear_icon.webix_icon_transparent.wxi-close {
     width: 20px;
     font-size: 12px
 }
+
+.webix_winmenu_item {
+    position: absolute;
+    text-align: center;
+    box-shadow: inset 0px 0px 1px 1px rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.webix_winmenu_item:active {
+    box-shadow: inset 0px 0px 5px 5px rgba(255, 255, 255, 0.5);
+}
+
+.webix_winmenu_item div {
+    color: #fff;
+    text-align: center;
+    font-size: 20px;
+}
+
+.webix_winmenu {
+    position: relative;
+    background: transparent;
+}
+
+.webix_winmenu .webix_scroll_cont {
+    position: static;
+}
