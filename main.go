@@ -3,19 +3,17 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/sirupsen/logrus"
 	"go-phoenix/base"
+	"go-phoenix/handle"
 	"go-phoenix/xsys"
 	"go-phoenix/xwf"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
-
-	"go-phoenix/handle"
 	"strings"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func main() {
@@ -29,8 +27,9 @@ func main() {
 			PadLevelText:    true,
 			TimestampFormat: "2006-01-02 15:04:05.000",
 			CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
+
 				loc := strings.TrimPrefix(frame.File, base.Config.Dir()+string(os.PathSeparator))
-				return ":", fmt.Sprintf("%s:%d", loc, frame.Line)
+				return fmt.Sprintf("%s:%d ||", loc, frame.Line), ""
 			},
 		},
 	)

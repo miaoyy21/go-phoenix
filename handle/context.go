@@ -263,6 +263,11 @@ func (ctx *Context) Path() string {
 	return ctx.URL.Path
 }
 
+var namedMenus = map[string]string{
+	"PHOENIX_HOME_PAGE":      "首页",
+	"PHOENIX_EXECUTING_PAGE": "[任务中心]",
+}
+
 // UsingMenu 默认从请求地址获取当前打开的界面，否则从Cookie获取
 func (ctx *Context) UsingMenu() (menu string, err error) {
 	// Params
@@ -286,7 +291,13 @@ func (ctx *Context) UsingMenu() (menu string, err error) {
 		return menu, err
 	}
 
-	return strings.Trim(newMenu, "\""), nil
+	menuId := strings.Trim(newMenu, "\"")
+	named, ok := namedMenus[menuId]
+	if ok {
+		return named, nil
+	}
+
+	return menuId, nil
 }
 
 func (ctx *Context) Params() map[string]string {
