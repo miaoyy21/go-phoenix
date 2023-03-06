@@ -127,7 +127,7 @@ func InitConfig(dir string) error {
 	logrus.SetLevel(level)
 	logrus.Infof("Aes key is %q", Config.AesKey)
 	logrus.Infof("Aes Iv is %q", Config.AesIv)
-	logrus.Infof("Work Directory is %q", Config.dir)
+	logrus.Infof("Work at %q", Config.dir)
 	logrus.Infof("Log Level is %q", Config.Level)
 	logrus.Infof("Database Driver is %q", Config.DBDriver)
 	logrus.Infof("Database Schema is %q", Config.schema)

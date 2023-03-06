@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"go-phoenix/base"
 	"go-phoenix/xsys"
+	"go-phoenix/xwf"
 	"net"
 	"os"
 	"runtime"
 
 	"go-phoenix/handle"
-	"go-phoenix/xwf"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -82,12 +82,12 @@ func main() {
 	http.Handle("/api/sys/data_service", handle.Handler(db, &xsys.SysDataService{}))             // 用户数据服务
 	http.Handle("/api/sys/docs", handle.Handler(db, &xsys.SysDocs{}))                            // 文档
 
+	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{})) // 流程图
+	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))       // 流程执行
+
 	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xsys.SysTableForeignKeys{}))  // 数据库表外键
 	//http.Handle("/api/sys/table_indexes", handle.Handler(db, &xsys.SysTableIndexes{}))           // 数据库表索引
 	//http.Handle("/api/sys/ui_widget", handle.Handler(db, &xsys.SysUIWidget{}))                   // UI组件设计
-
-	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{})) // 流程图
-	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))       // 流程执行
 
 	addr := net.JoinHostPort(base.Config.Host, base.Config.Port)
 	logrus.Infof("Start Listen %s ......", addr)
