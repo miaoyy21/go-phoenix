@@ -17,7 +17,7 @@ package xwf
 //
 //	// 流程实例是否已启动
 //	var key int
-//	if err := asql.SelectRow(tx, "SELECT start_key_ FROM wf_flow WHERE instance_id_ = ? AND status_ = ? AND create_user_id_ = ?", instanceId, enum.FlowStatusRejected, ctx.GetUserId()).Scan(&key); err != nil {
+//	if err := asql.SelectRow(tx, "SELECT start_key_ FROM wf_flow WHERE instance_id_ = ? AND status_ = ? AND create_user_id_ = ?", instanceId, enum.FlowStatusRejected, ctx.UserId()).Scan(&key); err != nil {
 //		if err == sql.ErrNoRows {
 //			return nil, errors.New("没有处理该待办事项权限")
 //		}

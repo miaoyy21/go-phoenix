@@ -19,7 +19,7 @@ func (o *Flows) PostRemove(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 	var key int
 	var status enum.FlowStatus
 	query := "SELECT diagram_id_, values_, start_key_, status_ FROM wf_flow WHERE id = ? AND create_user_id_ = ?"
-	args := []interface{}{id, ctx.GetUserId()}
+	args := []interface{}{id, ctx.UserId()}
 	if err := asql.SelectRow(tx, query, args...).Scan(&diagramId, &values, &key, &status); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有权限删除流程实例")

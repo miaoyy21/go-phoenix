@@ -13,7 +13,7 @@ import (
 
 // Update 更新操作
 func Update(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.GetValues()
+	values := ctx.Values()
 
 	query := `
 		SELECT sys_table_column.code_

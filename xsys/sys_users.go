@@ -147,12 +147,12 @@ func (o *SysUsers) PostResetPassword(tx *sql.Tx, ctx *handle.Context) (interface
 func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 
 	// 获取用户的部门ID
-	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.GetDepartId())
+	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.DepartId())
 	if err != nil {
 		return nil, err
 	}
 
-	org = append(org, ctx.GetUserId())
+	org = append(org, ctx.UserId())
 	menus, err := menusByOrg(tx, org...)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 	var tasks int
 
 	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := asql.SelectRow(tx, query, ctx.GetUserId(), "Executing").Scan(&tasks); err != nil {
+	if err := asql.SelectRow(tx, query, ctx.UserId(), "Executing").Scan(&tasks); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -177,7 +177,7 @@ func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interfa
 	nPwd := ctx.PostFormValue("new_password")
 
 	var uPwd string
-	if err := asql.SelectRow(tx, "SELECT sys_user.password_ FROM sys_user WHERE sys_user.id = ?", ctx.GetUserId()).Scan(&uPwd); err != nil {
+	if err := asql.SelectRow(tx, "SELECT sys_user.password_ FROM sys_user WHERE sys_user.id = ?", ctx.UserId()).Scan(&uPwd); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("无效的登录用户")
 		}
@@ -204,12 +204,12 @@ func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interfa
 
 	// 密码加密
 	ePwd := base.Config.AesEncodeString(nPwd)
-	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ? WHERE id = ?", ePwd, ctx.GetUserId()); err != nil {
+	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ? WHERE id = ?", ePwd, ctx.UserId()); err != nil {
 		return nil, err
 	}
 
 	// Token
-	token := base.GenerateToken(ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(), ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(), ePwd, ctx.UserAgent(), setting["token_expire"])
+	token := base.GenerateToken(ctx.UserId(), ctx.UserCode(), ctx.UserName(), ctx.DepartId(), ctx.DepartCode(), ctx.DepartName(), ePwd, ctx.UserAgent(), setting["token_expire"])
 	expire := time.Now().Add(time.Duration(setting["token_expire"]) * time.Second)
 	setCookie(ctx, "PHOENIX_LOGIN_TOKEN", token, expire)
 

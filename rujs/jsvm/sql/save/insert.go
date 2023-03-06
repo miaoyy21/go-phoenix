@@ -13,7 +13,7 @@ import (
 
 // Insert 插入操作
 func Insert(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.GetValues()
+	values := ctx.Values()
 
 	query := `
 		SELECT sys_table_column.code_
@@ -56,17 +56,17 @@ func Insert(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{
 		case "order_":
 			fields[col] = strconv.FormatInt(asql.GenerateOrderId(), 10)
 		case "create_depart_id_":
-			fields[col] = ctx.GetDepartId()
+			fields[col] = ctx.DepartId()
 		case "create_depart_code_":
-			fields[col] = ctx.GetDepartCode()
+			fields[col] = ctx.DepartCode()
 		case "create_depart_name_":
-			fields[col] = ctx.GetDepartName()
+			fields[col] = ctx.DepartName()
 		case "create_user_id_":
-			fields[col] = ctx.GetUserId()
+			fields[col] = ctx.UserId()
 		case "create_user_code_":
-			fields[col] = ctx.GetUserCode()
+			fields[col] = ctx.UserCode()
 		case "create_user_name_":
-			fields[col] = ctx.GetUserName()
+			fields[col] = ctx.UserName()
 		case "create_at_":
 			fields[col] = asql.GetNow()
 		default:

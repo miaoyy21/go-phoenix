@@ -13,7 +13,7 @@ import (
 
 // Delete 删除操作
 func Delete(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.GetValues()
+	values := ctx.Values()
 
 	// id
 	id, ok := values["id"]

@@ -29,7 +29,7 @@ func (node *NodeExecute) CustomExecutors(scope []string) ([]Executor, error) {
 			WHERE diagram_id_ = ? AND key_ = ? AND create_user_id_ = ? 
 			ORDER BY order_ ASC
 		`
-		res, err := asql.Select(node.tx, query, node.diagramId, node.key, node.ctx.GetUserId())
+		res, err := asql.Select(node.tx, query, node.diagramId, node.key, node.ctx.UserId())
 		if err != nil {
 			return nil, err
 		}

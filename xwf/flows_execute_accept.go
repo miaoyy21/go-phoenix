@@ -43,7 +43,7 @@ func (o *Flows) PostExecuteAccept(tx *sql.Tx, ctx *handle.Context) (interface{},
 		WHERE wf_flow.id = wf_flow_task.flow_id_ AND wf_flow_task.id = ? 
 			AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	`
-	args := []interface{}{id, ctx.GetUserId(), enum.FlowNodeStatusExecuting}
+	args := []interface{}{id, ctx.UserId(), enum.FlowNodeStatusExecuting}
 	if err := asql.SelectRow(tx, query, args...).Scan(&flowId, &diagramId, &key, &values, &executedKeys, &activatedKeys); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有处理该待办事项权限")

@@ -12,7 +12,7 @@ import (
 
 // Select 查询数据
 func (s *Sql) Select(args ...string) map[string]interface{} {
-	params := s.ctx.GetParams()
+	params := s.ctx.Params()
 
 	var fields, from, where, groupBy, orderBy string
 	for _, arg := range args {
@@ -65,7 +65,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 获取排序和过滤条件
-	sorts, filters, filtered := s.ctx.GetSortsFilters(mapFields)
+	sorts, filters, filtered := s.ctx.SortFilters(mapFields)
 
 	// 获取参数，排除filter和sort
 	newParams := make(map[string]string)

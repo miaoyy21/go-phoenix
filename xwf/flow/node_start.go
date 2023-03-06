@@ -45,10 +45,10 @@ func (node *NodeStart) Start(flowId string, values string, comment string) error
 	argsNode := []interface{}{
 		asql.GenerateId(), flowId, node.diagramId,
 		node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
-		node.ctx.GetUserId(), node.ctx.GetUserName(),
+		node.ctx.UserId(), node.ctx.UserName(),
 		now, now, comment, enum.FlowNodeStatusExecutedAuto,
-		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
-		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
+		node.ctx.DepartId(), node.ctx.DepartCode(), node.ctx.DepartName(),
+		node.ctx.UserId(), node.ctx.UserCode(), node.ctx.UserName(),
 	}
 
 	if err := asql.Insert(node.tx, queryNode, argsNode...); err != nil {

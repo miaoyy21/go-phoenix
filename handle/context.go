@@ -99,14 +99,14 @@ func (ctx *Context) Parse() error {
 	ctx.departName = string(xDepartName)
 
 	// 是否为有效的Token
-	if err := ctx.parseToken(); err != nil {
+	if err := ctx.parse(); err != nil {
 		return fmt.Errorf("parse Token Failure :: %s", err.Error())
 	}
 
 	return nil
 }
 
-func (ctx *Context) parseToken() error {
+func (ctx *Context) parse() error {
 	bytes, err := base64.StdEncoding.DecodeString(ctx.token)
 	if err != nil {
 		return err
@@ -118,19 +118,19 @@ func (ctx *Context) parseToken() error {
 	}
 
 	// 0 是否与 用户ID 匹配
-	if !strings.EqualFold(src[0], ctx.GetUserId()) {
+	if !strings.EqualFold(src[0], ctx.UserId()) {
 		return errors.New("user Id is not Match")
 	}
 
 	// 查询用户的加密密码
 	var userPassword string
-	row := ctx.QueryRow("SELECT password_ FROM sys_user WHERE id = ?", ctx.GetUserId())
+	row := ctx.QueryRow("SELECT password_ FROM sys_user WHERE id = ?", ctx.UserId())
 	if err := row.Scan(&userPassword); err != nil {
 		return err
 	}
 
 	// 1 是否与 附加信息 匹配
-	ext := fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", ctx.UserAgent(), userPassword, ctx.GetUserCode(), ctx.GetUserName(), ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName())
+	ext := fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", ctx.UserAgent(), userPassword, ctx.UserCode(), ctx.UserName(), ctx.DepartId(), ctx.DepartCode(), ctx.DepartName())
 	md5Ext := md5.Sum([]byte(ext))
 	if !strings.EqualFold(src[1], base64.StdEncoding.EncodeToString(md5Ext[:])) {
 		return errors.New("user's Agent is not Match")
@@ -150,31 +150,31 @@ func (ctx *Context) parseToken() error {
 	return nil
 }
 
-func (ctx *Context) GetUserId() string {
+func (ctx *Context) UserId() string {
 	return ctx.userId
 }
 
-func (ctx *Context) GetUserCode() string {
+func (ctx *Context) UserCode() string {
 	return ctx.userCode
 }
 
-func (ctx *Context) GetUserName() string {
+func (ctx *Context) UserName() string {
 	return ctx.userName
 }
 
-func (ctx *Context) GetDepartId() string {
+func (ctx *Context) DepartId() string {
 	return ctx.departId
 }
 
-func (ctx *Context) GetDepartCode() string {
+func (ctx *Context) DepartCode() string {
 	return ctx.departCode
 }
 
-func (ctx *Context) GetDepartName() string {
+func (ctx *Context) DepartName() string {
 	return ctx.departName
 }
 
-func (ctx *Context) GetNullableFormValue(key string) interface{} {
+func (ctx *Context) PostFormNullableValue(key string) interface{} {
 	sParent := ctx.PostFormValue(key)
 	if len(sParent) < 1 || strings.EqualFold(sParent, "0") {
 		return nil
@@ -183,7 +183,7 @@ func (ctx *Context) GetNullableFormValue(key string) interface{} {
 	return sParent
 }
 
-func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []string, []interface{}) {
+func (ctx *Context) SortFilters(mapFields map[string]string) ([]string, []string, []interface{}) {
 	sorts := make([]string, 0)
 	filters := make([]string, 0)
 	filtered := make([]interface{}, 0)
@@ -196,7 +196,6 @@ func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []st
 	}
 
 	params := strings.Split(uri.RawQuery, "&")
-	logrus.Debugf("Params is %#v\n", params)
 	for _, param := range params {
 		pairs := strings.Split(param, "=")
 		if len(pairs) != 2 {
@@ -207,7 +206,6 @@ func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []st
 		if len(value) < 1 {
 			continue
 		}
-		logrus.Debugf("Params key is %s && Value is %s \n", key, value)
 
 		// 符合排序规则 sort[...]={asc||desc}
 		if strings.HasPrefix(key, "sort[") && strings.HasSuffix(key, "]") {
@@ -247,7 +245,7 @@ func (ctx *Context) GetSortsFilters(mapFields map[string]string) ([]string, []st
 	return sorts, filters, filtered
 }
 
-func (ctx *Context) GetIP() string {
+func (ctx *Context) ClientIP() string {
 	ip, _, err := net.SplitHostPort(strings.TrimSpace(ctx.RemoteAddr))
 	if err != nil {
 		return "0.0.0.0"
@@ -261,20 +259,12 @@ func (ctx *Context) GetIP() string {
 	return remoteIP.String()
 }
 
-func (ctx *Context) GetSize() string {
-	return strconv.Itoa(int(ctx.ContentLength))
-}
-
-func (ctx *Context) GetMethod() string {
-	return ctx.Method
-}
-
-func (ctx *Context) GetPath() string {
+func (ctx *Context) Path() string {
 	return ctx.URL.Path
 }
 
-// GetMenu 默认从请求地址获取当前打开的界面，否则从Cookie获取
-func (ctx *Context) GetMenu() (menu string, err error) {
+// UsingMenu 默认从请求地址获取当前打开的界面，否则从Cookie获取
+func (ctx *Context) UsingMenu() (menu string, err error) {
 	// Params
 	params, err := url.ParseQuery(ctx.URL.RawQuery)
 	if err != nil {
@@ -299,7 +289,7 @@ func (ctx *Context) GetMenu() (menu string, err error) {
 	return strings.Trim(newMenu, "\""), nil
 }
 
-func (ctx *Context) GetParams() map[string]string {
+func (ctx *Context) Params() map[string]string {
 	if ctx.params == nil {
 		values, err := url.ParseQuery(ctx.URL.RawQuery)
 		if err != nil {
@@ -313,7 +303,7 @@ func (ctx *Context) GetParams() map[string]string {
 	return ctx.params
 }
 
-func (ctx *Context) GetValues() map[string]string {
+func (ctx *Context) Values() map[string]string {
 	if ctx.values == nil {
 		if err := ctx.ParseForm(); err != nil {
 			return make(map[string]string)

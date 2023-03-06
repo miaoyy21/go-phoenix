@@ -27,7 +27,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ IN (?,?,?)
 			ORDER BY end_at_ DESC, active_at_ DESC, create_at_ DESC
 		`
-		args = append(args, diagramId, ctx.GetUserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
+		args = append(args, diagramId, ctx.UserId(), enum.FlowStatusDraft, enum.FlowStatusRevoked, enum.FlowStatusRejected)
 	default:
 		query = `
 			SELECT id, keyword_, executed_keys_, activated_keys_, 
@@ -36,7 +36,7 @@ func (o *Flows) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			WHERE diagram_id_ = ? AND create_user_id_ = ? AND status_ = ?
 			ORDER BY end_at_ DESC, active_at_ DESC, create_at_ DESC
 		`
-		args = append(args, diagramId, ctx.GetUserId(), status)
+		args = append(args, diagramId, ctx.UserId(), status)
 	}
 
 	return asql.Select(tx, query, args...)
@@ -90,7 +90,7 @@ func (o *Flows) GetSummary(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 		WHERE diagram_id_ = ? AND create_user_id_ = ?
 		GROUP BY status_
 	`
-	res, err := asql.Select(tx, query, diagramId, ctx.GetUserId())
+	res, err := asql.Select(tx, query, diagramId, ctx.UserId())
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +148,8 @@ func (o *Flows) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		args := []interface{}{
 			newId, values, diagramId, keyword,
 			key, enum.FlowStatusDraft, "等待流程实例启动", asql.GenerateOrderId(), now,
-			ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(),
-			ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(),
+			ctx.DepartId(), ctx.DepartCode(), ctx.DepartName(),
+			ctx.UserId(), ctx.UserCode(), ctx.UserName(),
 		}
 
 		if err := asql.Insert(tx, query, args...); err != nil {

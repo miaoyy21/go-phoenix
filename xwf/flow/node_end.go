@@ -37,10 +37,10 @@ func (node *NodeEnd) End(flowId string, values string) error {
 	args := []interface{}{
 		asql.GenerateId(), flowId, node.diagramId,
 		node.key, node.category, node.code, node.name, asql.GenerateOrderId(),
-		node.ctx.GetUserId(), node.ctx.GetUserName(),
+		node.ctx.UserId(), node.ctx.UserName(),
 		now, now, enum.FlowNodeStatusExecutedAuto,
-		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
-		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
+		node.ctx.DepartId(), node.ctx.DepartCode(), node.ctx.DepartName(),
+		node.ctx.UserId(), node.ctx.UserCode(), node.ctx.UserName(),
 	}
 	if err := asql.Insert(node.tx, query, args...); err != nil {
 		return err

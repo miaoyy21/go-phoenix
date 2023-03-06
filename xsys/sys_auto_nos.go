@@ -12,7 +12,7 @@ type SysAutoNos struct {
 func (o *SysAutoNos) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	code := ctx.FormValue("code")
 
-	no, err := asql.AutoNo(tx, code, ctx.GetValues())
+	no, err := asql.AutoNo(tx, code, ctx.Values())
 	if err != nil {
 		return nil, err
 	}

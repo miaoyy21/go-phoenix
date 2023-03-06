@@ -98,8 +98,8 @@ func (node *NodeExecute) ExecuteAccept(id string, values string, comment string)
 	`
 	argsExecuted := []interface{}{
 		now, enum.FlowNodeStatusExecutedAccepted, comment,
-		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
-		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
+		node.ctx.DepartId(), node.ctx.DepartCode(), node.ctx.DepartName(),
+		node.ctx.UserId(), node.ctx.UserCode(), node.ctx.UserName(),
 		id,
 	}
 	if err := asql.Update(node.tx, queryExecuted, argsExecuted...); err != nil {
@@ -143,8 +143,8 @@ func (node *NodeExecute) ExecuteReject(id string, flowId string, values string, 
 	`
 	argsRejected := []interface{}{
 		now, enum.FlowNodeStatusExecutedRejected, comment,
-		node.ctx.GetDepartId(), node.ctx.GetDepartCode(), node.ctx.GetDepartName(),
-		node.ctx.GetUserId(), node.ctx.GetUserCode(), node.ctx.GetUserName(),
+		node.ctx.DepartId(), node.ctx.DepartCode(), node.ctx.DepartName(),
+		node.ctx.UserId(), node.ctx.UserCode(), node.ctx.UserName(),
 		id,
 	}
 	if err := asql.Update(node.tx, queryRejected, argsRejected...); err != nil {

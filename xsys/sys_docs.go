@@ -95,7 +95,7 @@ func (o *SysDocs) PostUpload(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 	`
 	args := []interface{}{
 		docId, name, size, mime, dir, asql.GenerateOrderId(), asql.GetNow(),
-		ctx.GetUserId(), ctx.GetUserCode(), ctx.GetUserName(), ctx.GetDepartId(), ctx.GetDepartCode(), ctx.GetDepartName(),
+		ctx.UserId(), ctx.UserCode(), ctx.UserName(), ctx.DepartId(), ctx.DepartCode(), ctx.DepartName(),
 	}
 	if err := asql.Insert(tx, query, args...); err != nil {
 		return nil, err

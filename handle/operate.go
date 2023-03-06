@@ -42,7 +42,7 @@ func newOperate(db *sql.DB, ctx *Context) *Operate {
 }
 
 func (op *Operate) refresh() error {
-	params, values := op.ctx.GetParams(), op.ctx.GetValues()
+	params, values := op.ctx.Params(), op.ctx.Values()
 
 	// Params
 	bsParams, err := json.Marshal(params)
@@ -59,14 +59,14 @@ func (op *Operate) refresh() error {
 	op.params = formatBytesWithSize(bsValues)
 
 	// Using Menu
-	menu, err := op.ctx.GetMenu()
+	menu, err := op.ctx.UsingMenu()
 	if err != nil {
 		return err
 	}
 	op.menu = menu
 
 	// User Agent
-	if strings.EqualFold(op.ctx.GetPath(), "/api/sys") {
+	if strings.EqualFold(op.ctx.Path(), "/api/sys") {
 		op.userAgent = op.ctx.UserAgent()
 	}
 
@@ -115,10 +115,10 @@ func (op *Operate) save() {
 		"	start_, end_, duration_, status_, message_) " +
 		"VALUES (?,?,?,?,?, ?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?)"
 	args := []interface{}{
-		op.id, op.ctx.GetIP(), op.ctx.GetSize(), op.userAgent, op.ctx.GetMethod(),
-		op.menu, op.ctx.GetPath(), op.params, op.values,
-		op.ctx.GetUserId(), op.ctx.GetUserCode(), op.ctx.GetUserName(),
-		op.ctx.GetDepartId(), op.ctx.GetDepartCode(), op.ctx.GetDepartName(),
+		op.id, op.ctx.ClientIP(), op.ctx.ContentLength, op.userAgent, op.ctx.Method,
+		op.menu, op.ctx.Path(), op.params, op.values,
+		op.ctx.UserId(), op.ctx.UserCode(), op.ctx.UserName(),
+		op.ctx.DepartId(), op.ctx.DepartCode(), op.ctx.DepartName(),
 		op.start, op.end, op.duration, op.status, op.message}
 	if _, err := op.db.Exec(query, args...); err != nil {
 		logrus.Errorf("Write Operate Log Failure :: %s", err.Error())

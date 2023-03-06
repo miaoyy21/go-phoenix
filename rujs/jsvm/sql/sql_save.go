@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Sql) Save(table string) (result map[string]interface{}) {
-	values := s.ctx.GetValues()
+	values := s.ctx.Values()
 
 	switch values["operation"] {
 	case "insert":

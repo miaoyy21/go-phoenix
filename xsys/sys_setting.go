@@ -20,7 +20,7 @@ func (m *SysSetting) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 }
 
 func (m *SysSetting) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	values := ctx.GetValues()
+	values := ctx.Values()
 
 	for field, value := range values {
 		query := "UPDATE sys_setting SET value_ = ?, update_at_ = ? WHERE field_ = ?"

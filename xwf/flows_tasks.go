@@ -24,7 +24,7 @@ func (o *Flows) GetTasks(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		AND wf_flow_task.executor_user_id_ = ? AND wf_flow_task.status_ = ?
 	ORDER BY wf_flow.end_at_ DESC, wf_flow.active_at_ DESC, wf_flow.create_at_ DESC
 		`
-	args := []interface{}{ctx.GetUserId(), status}
+	args := []interface{}{ctx.UserId(), status}
 
 	return asql.Select(tx, query, args...)
 }

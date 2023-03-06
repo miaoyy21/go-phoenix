@@ -18,7 +18,7 @@ func (o *Flows) PostRevoke(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 	var key int
 	var status enum.FlowStatus
 	query := "SELECT diagram_id_, values_, start_key_, status_ FROM wf_flow WHERE id = ? AND status_ = ? AND create_user_id_ = ?"
-	args := []interface{}{id, enum.FlowNodeStatusExecuting, ctx.GetUserId()}
+	args := []interface{}{id, enum.FlowNodeStatusExecuting, ctx.UserId()}
 	if err := asql.SelectRow(tx, query, args...).Scan(&diagramId, &values, &key, &status); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("没有权限撤回流程实例")

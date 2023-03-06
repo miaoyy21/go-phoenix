@@ -71,7 +71,7 @@ func (o *SysDeparts) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 	id := ctx.PostFormValue("id")
 	code := ctx.PostFormValue("code_")
 	name := ctx.PostFormValue("name_")
-	parentId := ctx.GetNullableFormValue("parent")
+	parentId := ctx.PostFormNullableValue("parent")
 	description := ctx.PostFormValue("description_")
 	valid := ctx.PostFormValue("valid_")
 

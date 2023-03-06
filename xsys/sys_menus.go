@@ -31,7 +31,7 @@ func (o *SysMenus) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	name := ctx.PostFormValue("name_")
 	menu := ctx.PostFormValue("menu_")
 	icon := ctx.PostFormValue("icon_")
-	parentId := ctx.GetNullableFormValue("parent")
+	parentId := ctx.PostFormNullableValue("parent")
 	description := ctx.PostFormValue("description_")
 	valid := ctx.PostFormValue("valid_")
 

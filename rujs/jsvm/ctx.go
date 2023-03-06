@@ -13,33 +13,33 @@ func NewContext(ctx *handle.Context) *Context {
 }
 
 func (b *Context) Params() map[string]string {
-	return b.ctx.GetParams()
+	return b.ctx.Params()
 }
 
 func (b *Context) Values() map[string]string {
-	return b.ctx.GetValues()
+	return b.ctx.Values()
 }
 
 func (b *Context) DepartId() string {
-	return b.ctx.GetDepartId()
+	return b.ctx.DepartId()
 }
 
 func (b *Context) DepartCode() string {
-	return b.ctx.GetDepartCode()
+	return b.ctx.DepartCode()
 }
 
 func (b *Context) DepartName() string {
-	return b.ctx.GetDepartName()
+	return b.ctx.DepartName()
 }
 
 func (b *Context) UserId() string {
-	return b.ctx.GetUserId()
+	return b.ctx.UserId()
 }
 
 func (b *Context) UserCode() string {
-	return b.ctx.GetUserCode()
+	return b.ctx.UserCode()
 }
 
 func (b *Context) UserName() string {
-	return b.ctx.GetUserName()
+	return b.ctx.UserName()
 }

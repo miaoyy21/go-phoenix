@@ -33,7 +33,7 @@ func NewPagination(ctx *Context, defaultSorts []string) *Pagination {
 	}
 
 	// 如果没进行排序，那么使用默认排序
-	sorts, filters, filtered := ctx.GetSortsFilters(map[string]string{})
+	sorts, filters, filtered := ctx.SortFilters(map[string]string{})
 	if len(sorts) < 1 && len(defaultSorts) > 0 {
 		sorts = append(sorts, defaultSorts...)
 	}
