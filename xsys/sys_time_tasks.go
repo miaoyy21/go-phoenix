@@ -49,7 +49,7 @@ func (o *SysTimeTasks) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 	description := ctx.PostFormValue("description_")
 
 	source := ctx.PostFormValue("source_")
-	onceAt := ctx.PostFormValue("once_at_")
+	onceAt := ctx.PostFormNullableValue("once_at_")
 	frequency := ctx.PostFormValue("frequency_")
 	frequencyDay := ctx.PostFormValue("frequency_day_")
 	frequencyDayRepeat := ctx.PostFormNullableValue("frequency_day_repeat_")
@@ -69,7 +69,7 @@ func (o *SysTimeTasks) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 		newId := asql.GenerateId()
 		query := `
 			INSERT INTO sys_time_task(
-				id, name_, type_, description_, 
+				id, name_, type_, is_start_, description_, 
 				source_, once_at_, frequency_, frequency_day_, 
 				frequency_day_repeat_, frequency_day_repeat_unit_,
 				frequency_day_start_, frequency_day_end_, 
@@ -77,7 +77,7 @@ func (o *SysTimeTasks) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 				order_, create_at_
 			) VALUES (?,?,?,?,?, ?,?,?,?, ?,?, ?,?, ?,?, ?,?)`
 		args := []interface{}{
-			newId, name, xType, description,
+			newId, name, xType, 0, description,
 			source, onceAt, frequency, frequencyDay,
 			frequencyDayRepeat, frequencyDayRepeatUnit,
 			frequencyDayStart, frequencyDayEnd,
@@ -88,7 +88,7 @@ func (o *SysTimeTasks) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 			return nil, err
 		}
 
-		return map[string]interface{}{"status": "success", "newid": newId, "create_at_": now}, nil
+		return map[string]interface{}{"status": "success", "id": newId, "newid": newId, "create_at_": now}, nil
 	case "update":
 		query := `
 			UPDATE sys_time_task 
