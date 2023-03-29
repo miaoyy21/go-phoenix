@@ -1,16 +1,30 @@
 create table sys_time_task
 (
-    id         varchar(256) not null
+    id                         varchar(256) not null
         primary key,
 
-    frequency_  varchar(200) null, -- 频率：每天、每周、每月
+    name_                      varchar(256) null,
+    type_                      varchar(256) null,
 
+    once_at_                   datetime     null,
 
-    source_    text         null,
+    frequency_                 varchar(256) null, -- 频率：每天、每周、每月
+    frequency_day_             varchar(256) null,
+    frequency_day_repeat_      int          null,
+    frequency_day_repeat_unit_ varchar(256) null,
+    frequency_day_start_       time         null,
+    frequency_day_end_         time         null,
+    frequency_start_at_        datetime     null,
+    frequency_end_at_          datetime     null,
 
-    order_     bigint       null,
-    create_at_ datetime     null,
-    update_at_ datetime     null
+    description_               text         null,
+
+    is_start_                  tinyint      null,
+    source_                    text         null,
+
+    order_                     bigint       null,
+    create_at_                 datetime     null,
+    update_at_                 datetime     null
 );
 
 -- 查询索引
