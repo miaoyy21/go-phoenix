@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	_ "dm"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
