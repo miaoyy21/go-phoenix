@@ -5,5 +5,5 @@
   "aesKey": "fbe666591f898dae5b7b2110b27b0e00",
   "aesIv": "3738f85acef6060516668bec263c94aa",
   "dbDriver": "dm",
-  "dbDataSource": "dm://SYSDBA:SYSDBA123456@localhost:5236?schema=PHOENIX"
+  "dbDataSource": "dm://SYSDBA:SYSDBA123456@localhost:5236?autoCommit=false"
 }

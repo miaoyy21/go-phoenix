@@ -5,13 +5,10 @@ import (
 	"crypto/cipher"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"math/rand"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -28,8 +25,8 @@ type config struct {
 	DBDriver     string `json:"dbDriver"`
 	DBDataSource string `json:"DBDataSource"`
 
-	dir    string
-	schema string
+	dir string
+	//schema string
 
 	aesIv    []byte
 	aesBlock cipher.Block
@@ -41,9 +38,9 @@ func (cfg config) Dir() string {
 	return cfg.dir
 }
 
-func (cfg config) Schema() string {
-	return cfg.schema
-}
+//func (cfg config) Schema() string {
+//	return cfg.schema
+//}
 
 func (cfg config) Rand() *rand.Rand {
 	return cfg.rand
@@ -89,19 +86,19 @@ func InitConfig(dir string) error {
 		return err
 	}
 
-	// 解析连接数据库的数据源
-	uri, err := url.ParseRequestURI(Config.DBDataSource)
-	if err != nil {
-		return err
-	}
-
-	schema := uri.Opaque[strings.LastIndexByte(uri.Opaque, '/')+1:]
-	if len(schema) < 1 {
-		return fmt.Errorf("datasource Missing Database Schema")
-	}
+	//// 解析连接数据库的数据源
+	//uri, err := url.ParseRequestURI(Config.DBDataSource)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//schema := uri.Opaque[strings.LastIndexByte(uri.Opaque, '/')+1:]
+	//if len(schema) < 1 {
+	//	return fmt.Errorf("datasource Missing Database Schema")
+	//}
 
 	Config.dir = dir
-	Config.schema = schema
+	//Config.schema = schema
 
 	// AES key
 	aesKey, err := hex.DecodeString(Config.AesKey)
@@ -130,7 +127,7 @@ func InitConfig(dir string) error {
 	logrus.Infof("Work at %q", Config.dir)
 	logrus.Infof("Log Level is %q", Config.Level)
 	logrus.Infof("Database Driver is %q", Config.DBDriver)
-	logrus.Infof("Database Schema is %q", Config.schema)
+	//logrus.Infof("Database Schema is %q", Config.schema)
 
 	seed := time.Now().UnixNano()
 	Config.rand = rand.New(rand.NewSource(seed))
