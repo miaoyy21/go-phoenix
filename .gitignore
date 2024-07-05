@@ -4,3 +4,6 @@ store/upload/*
 go-phoenix_darwin_arm64
 go-phoenix_linux_386
 go-phoenix_windows_386
+
+config.json
+config_mysql.json
