@@ -3,6 +3,7 @@ package asql
 import (
 	"database/sql"
 	"github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -51,7 +52,7 @@ func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string,
 					}
 				}
 
-				entry[col] = value
+				entry[strings.ToLower(col)] = value
 			}
 		}
 
