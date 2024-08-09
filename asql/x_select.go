@@ -8,7 +8,7 @@ import (
 )
 
 func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string, error) {
-	logrus.Debugf("Select SQL with Arguments [%s] %s", Arguments(args...), query)
+	logrus.Debugf("[%s] %s", Arguments(args...), query)
 
 	// Rows
 	rows, err := tx.Query(query, args...)
@@ -67,13 +67,13 @@ func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string,
 }
 
 func SelectRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	logrus.Debugf("Get Row SQL with Arguments [%s] %s", Arguments(args...), query)
+	logrus.Debugf("[%s] %s", Arguments(args...), query)
 
 	return tx.QueryRow(query, args...)
 }
 
 func SelectColumns(tx *sql.Tx, query string, args ...interface{}) ([]string, error) {
-	logrus.Debugf("SelectColumns SQL with Arguments [%s] %s", Arguments(args...), query)
+	logrus.Debugf("[%s] %s", Arguments(args...), query)
 
 	// Rows
 	rows, err := tx.Query(query, args...)

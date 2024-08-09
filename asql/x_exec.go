@@ -6,7 +6,7 @@ import (
 )
 
 func Exec(tx *sql.Tx, query string, args ...interface{}) (int64, error) {
-	logrus.Debugf("Exec SQL with Arguments [%s] %s", Arguments(args...), query)
+	logrus.Debugf("[%s] %s", Arguments(args...), query)
 
 	res, err := tx.Exec(query, args...)
 	if err != nil {
