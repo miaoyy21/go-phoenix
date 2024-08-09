@@ -6,7 +6,7 @@ import (
 )
 
 func Insert(tx *sql.Tx, query string, args ...interface{}) error {
-	logrus.Debugf("[%s] %s", Arguments(args...), query)
+	logrus.Debugf("%s %s", FnArgs(args...), query)
 
 	if _, err := tx.Exec(query, args...); err != nil {
 		return err

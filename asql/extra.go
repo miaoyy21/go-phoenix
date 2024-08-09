@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/google/uuid"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -36,23 +37,35 @@ func GetNow() string {
 	return time.Now().Format("2006-01-02 15:04:05")
 }
 
-func Arguments(args ...interface{}) string {
-	ss := make([]string, 0, len(args))
+func FnArgs(args ...interface{}) string {
 
-	for _, arg := range args {
-		switch arg.(type) {
-		case string:
-			ss = append(ss, fmt.Sprintf("%q", arg))
-		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			ss = append(ss, fmt.Sprintf("%d", arg))
-		case bool:
-			ss = append(ss, fmt.Sprintf("%t", arg))
-		case float32, float64:
-			ss = append(ss, fmt.Sprintf("%f", arg))
-		default:
-			ss = append(ss, fmt.Sprintf("%#v<%T>", arg, arg))
+	buf := new(bytes.Buffer)
+
+	_, file, line, _ := runtime.Caller(2)
+	buf.WriteString(fmt.Sprintf("%s:%d ", strings.Split(file, "/go-phoenix/")[1], line))
+
+	if len(args) > 0 {
+		buf.WriteString("[")
+		for i, arg := range args {
+			if i > 0 {
+				buf.WriteString(", ")
+			}
+
+			switch arg.(type) {
+			case string:
+				buf.WriteString(fmt.Sprintf("%q", arg))
+			case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+				buf.WriteString(fmt.Sprintf("%d", arg))
+			case bool:
+				buf.WriteString(fmt.Sprintf("%t", arg))
+			case float32, float64:
+				buf.WriteString(fmt.Sprintf("%f", arg))
+			default:
+				buf.WriteString(fmt.Sprintf("<%T>%#v", arg, arg))
+			}
 		}
+		buf.WriteString("]")
 	}
 
-	return strings.Join(ss, ",")
+	return buf.String()
 }
