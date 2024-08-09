@@ -281,14 +281,11 @@ func (s *Sql) ParseColumnConfigs(query string) ([]map[string]string, error) {
 			// 默认页眉
 			config["header.text"] = n
 			switch t {
+			case "VARCHAR(1)", "VARCHAR(32)":
 			case "VARCHAR(256)":
-			case "VARCHAR(1024)":
-				config["val.editor"] = "popup"
-
-				delete(config, "val.adjust")
-				config["val.width"] = "360"
-				config["val.minWidth"] = "360"
-				config["val.maxWidth"] = "540"
+				config["val.width"] = "240"
+				config["val.minWidth"] = "240"
+				config["val.maxWidth"] = "360"
 			case "VARCHAR(4096)":
 				config["val.editor"] = "popup"
 
@@ -329,10 +326,6 @@ func (s *Sql) ParseColumnConfigs(query string) ([]map[string]string, error) {
 				config["val.align"] = "right"
 				config["val.format"] = "number"
 				config["val.decimal.size"] = "4"
-			case "NUMERIC(23,6)":
-				config["val.align"] = "right"
-				config["val.format"] = "number"
-				config["val.decimal.size"] = "6"
 			case "DATE":
 				config["val.align"] = "center"
 				config["val.editor"] = "date"
