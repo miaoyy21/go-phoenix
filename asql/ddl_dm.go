@@ -17,14 +17,14 @@ func (o *DmDDL) IsSupportSequence() bool {
 
 func (o *DmDDL) Desc() (cols []string, present map[string]string, err error) {
 	query := `
-	SELECT column_name AS column_name,
-		CASE data_type 
-			WHEN 'VARCHAR' THEN CONCAT('varchar','(',CAST(data_length AS varchar),')') 
-			WHEN 'NUMERIC' THEN CONCAT('decimal','(',CAST(data_precision AS varchar),',',CAST(data_scale AS varchar),')') 
-			ELSE lower(data_type)
-		END AS data_type 
-	FROM user_tab_columns 
-	WHERE table_name = ?
+		SELECT column_name AS column_name,
+			CASE data_type 
+				WHEN 'VARCHAR' THEN CONCAT('varchar','(',CAST(data_length AS varchar),')') 
+				WHEN 'NUMERIC' THEN CONCAT('decimal','(',CAST(data_precision AS varchar),',',CAST(data_scale AS varchar),')') 
+				ELSE lower(data_type)
+			END AS data_type 
+		FROM user_tab_columns 
+		WHERE table_name = ?
 	`
 	res, err := Select(o.tx, query, o.table)
 	if err != nil {

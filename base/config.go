@@ -23,10 +23,9 @@ type config struct {
 	Port string `json:"port"`
 
 	DBDriver     string `json:"dbDriver"`
-	DBDataSource string `json:"DBDataSource"`
+	DBDataSource string `json:"dbDataSource"`
 
 	dir string
-	//schema string
 
 	aesIv    []byte
 	aesBlock cipher.Block
@@ -37,10 +36,6 @@ type config struct {
 func (cfg config) Dir() string {
 	return cfg.dir
 }
-
-//func (cfg config) Schema() string {
-//	return cfg.schema
-//}
 
 func (cfg config) Rand() *rand.Rand {
 	return cfg.rand
@@ -86,19 +81,7 @@ func InitConfig(dir string) error {
 		return err
 	}
 
-	//// 解析连接数据库的数据源
-	//uri, err := url.ParseRequestURI(Config.DBDataSource)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//schema := uri.Opaque[strings.LastIndexByte(uri.Opaque, '/')+1:]
-	//if len(schema) < 1 {
-	//	return fmt.Errorf("datasource Missing DDLBase Schema")
-	//}
-
 	Config.dir = dir
-	//Config.schema = schema
 
 	// AES key
 	aesKey, err := hex.DecodeString(Config.AesKey)
@@ -124,10 +107,9 @@ func InitConfig(dir string) error {
 	logrus.SetLevel(level)
 	logrus.Infof("Aes key is %q", Config.AesKey)
 	logrus.Infof("Aes Iv is %q", Config.AesIv)
-	logrus.Infof("Work at %q", Config.dir)
+	logrus.Infof("Work Dir is %q", Config.dir)
 	logrus.Infof("Log Level is %q", Config.Level)
-	logrus.Infof("DDLBase Driver is %q", Config.DBDriver)
-	//logrus.Infof("DDLBase Schema is %q", Config.schema)
+	logrus.Infof("DB Driver is %q", Config.DBDriver)
 
 	seed := time.Now().UnixNano()
 	Config.rand = rand.New(rand.NewSource(seed))

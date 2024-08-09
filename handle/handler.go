@@ -26,7 +26,7 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 
 		ctx := NewContext(db, r, w)
 		path, params, values := ctx.Path(), ctx.Params(), ctx.Values()
-		logrus.Debugf(">>>>>>>>>>> Handler => Method: %s , Path: %s , Params: %#v ,Values: %#v", ctx.Method, path, params, values)
+		logrus.Debugf("[%s %q]: {Params: %#v, Values: %#v}", ctx.Method, path, params, values)
 
 		// 操作日志
 		op = newOperate(db, ctx)
