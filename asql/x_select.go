@@ -83,13 +83,41 @@ func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string,
 }
 
 func SelectRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	logrus.Debugf("%s %s", FnArgs(args...), query)
+	if logrus.IsLevelEnabled(logrus.DebugLevel) {
+		var prefix string
+
+		// 格式化SQL输出
+		for i := 5; i > 1; i-- {
+			prefix = fmt.Sprintf("\n%s", strings.Repeat("\t", i))
+			if strings.HasPrefix(query, prefix) {
+				break
+			}
+		}
+		query = strings.ReplaceAll(query, prefix, "\n\t")
+
+		query = strings.TrimRightFunc(query, unicode.IsSpace)
+		logrus.Debugf("%s %s", FnArgs(args...), query)
+	}
 
 	return tx.QueryRow(query, args...)
 }
 
 func SelectColumns(tx *sql.Tx, query string, args ...interface{}) ([]string, error) {
-	logrus.Debugf("%s %s", FnArgs(args...), query)
+	if logrus.IsLevelEnabled(logrus.DebugLevel) {
+		var prefix string
+
+		// 格式化SQL输出
+		for i := 5; i > 1; i-- {
+			prefix = fmt.Sprintf("\n%s", strings.Repeat("\t", i))
+			if strings.HasPrefix(query, prefix) {
+				break
+			}
+		}
+		query = strings.ReplaceAll(query, prefix, "\n\t")
+
+		query = strings.TrimRightFunc(query, unicode.IsSpace)
+		logrus.Debugf("%s %s", FnArgs(args...), query)
+	}
 
 	// Rows
 	rows, err := tx.Query(query, args...)

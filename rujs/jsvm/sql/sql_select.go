@@ -281,7 +281,7 @@ func (s *Sql) ParseColumnConfigs(query string) ([]map[string]string, error) {
 			// 默认页眉
 			config["header.text"] = n
 			switch t {
-			case "VARCHAR(1)", "VARCHAR(32)":
+			case "VARCHAR(32)":
 			case "VARCHAR(256)":
 				config["val.width"] = "240"
 				config["val.minWidth"] = "240"
