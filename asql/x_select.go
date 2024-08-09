@@ -8,6 +8,7 @@ import (
 )
 
 func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string, error) {
+
 	logrus.Debugf("[%s] %s", Arguments(args...), query)
 
 	// Rows
