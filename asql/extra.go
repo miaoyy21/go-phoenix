@@ -54,5 +54,5 @@ func Arguments(args ...interface{}) string {
 		}
 	}
 
-	return strings.Join(ss, " , ")
+	return strings.Join(ss, ",")
 }

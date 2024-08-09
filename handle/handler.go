@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"go-phoenix/base"
 	"net/http"
 	"reflect"
 	"runtime/debug"
@@ -26,7 +27,7 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 
 		ctx := NewContext(db, r, w)
 		path, params, values := ctx.Path(), ctx.Params(), ctx.Values()
-		logrus.Debugf("[%s %q]: {Params: %#v, Values: %#v}", ctx.Method, path, params, values)
+		logrus.Debugf("[%s %q]: {Params: %s, Values: %s}", ctx.Method, path, base.MapString(params), base.MapString(values))
 
 		// 操作日志
 		op = newOperate(db, ctx)
