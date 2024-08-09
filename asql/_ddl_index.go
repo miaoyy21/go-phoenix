@@ -8,7 +8,7 @@ package asql
 //	"strings"
 //)
 //
-//func (d *DDL) SyncIndexes(present map[string]string) error {
+//func (d *DDLBase) SyncIndexes(present map[string]string) error {
 //	res, err := Select(d.tx, fmt.Sprintf("SHOW INDEX FROM %s", d.table))
 //	if err != nil {
 //		return err

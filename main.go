@@ -57,7 +57,7 @@ func main() {
 		logrus.Fatalf("db.Ping() Failure :: %s", err.Error())
 	}
 
-	logrus.Info("Connect Database Successful ...")
+	logrus.Info("Connect DDLBase Successful ...")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))

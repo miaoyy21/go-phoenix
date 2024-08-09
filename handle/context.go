@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"go-phoenix/asql"
 	"go-phoenix/base"
 	"net"
 	"net/http"
@@ -331,6 +332,21 @@ func (ctx *Context) Reset(params map[string]string, values map[string]string) {
 	ctx.values = values
 }
 
+func (ctx *Context) DDL(tx *sql.Tx, table string, cols []string, present map[string]string) asql.DDL {
+	ddl := asql.NewDDLBase(tx, table, cols, present)
+
+	switch base.Config.DBDriver {
+	case "mysql":
+		return &asql.MySqlDDL{DDLBase: ddl}
+	case "dm":
+		return &asql.DmDDL{DDLBase: ddl}
+	default:
+		logrus.Panicf("unsupport database driver %q", base.Config.DBDriver)
+	}
+
+	return nil
+}
+
 //
 //func (cx *Context) ParsePayload(params interface{}) (map[string]interface{}, error) {
 //	fields := make(map[string]interface{})
@@ -400,7 +416,7 @@ func (ctx *Context) Reset(params map[string]string, values map[string]string) {
 //		value.SetFloat(num)
 //		return num, nil
 //	} else if kind == reflect.Struct {
-//		//_, ok := value.Interface().(time.Time)
+//		//_, ok := value.DDL().(time.Time)
 //		//if !ok {
 //		//	return nil, errors.New("only support time.Time field")
 //		//}

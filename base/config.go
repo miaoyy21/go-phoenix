@@ -94,7 +94,7 @@ func InitConfig(dir string) error {
 	//
 	//schema := uri.Opaque[strings.LastIndexByte(uri.Opaque, '/')+1:]
 	//if len(schema) < 1 {
-	//	return fmt.Errorf("datasource Missing Database Schema")
+	//	return fmt.Errorf("datasource Missing DDLBase Schema")
 	//}
 
 	Config.dir = dir
@@ -126,8 +126,8 @@ func InitConfig(dir string) error {
 	logrus.Infof("Aes Iv is %q", Config.AesIv)
 	logrus.Infof("Work at %q", Config.dir)
 	logrus.Infof("Log Level is %q", Config.Level)
-	logrus.Infof("Database Driver is %q", Config.DBDriver)
-	//logrus.Infof("Database Schema is %q", Config.schema)
+	logrus.Infof("DDLBase Driver is %q", Config.DBDriver)
+	//logrus.Infof("DDLBase Schema is %q", Config.schema)
 
 	seed := time.Now().UnixNano()
 	Config.rand = rand.New(rand.NewSource(seed))

@@ -33,7 +33,7 @@ package asql
 //	return fks, cms, nil
 //}
 //
-//func (d *DDL) SyncForeignKeys(present map[string]ForeignKey, sPresent map[string]string) error {
+//func (d *DDLBase) SyncForeignKeys(present map[string]ForeignKey, sPresent map[string]string) error {
 //	query := `
 //			SELECT C.constraint_name AS code_,C.column_name AS column_,
 //				   C.referenced_table_name AS referenced_table_,C.referenced_column_name AS referenced_column_

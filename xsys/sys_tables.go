@@ -1,7 +1,6 @@
 package xsys
 
 import (
-	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -82,8 +81,8 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			return nil, err
 		}
 
-		// 数据库表
-		if err := asql.Delete(tx, "DELETE FROM sys_table WHERE id = ?", id); err != nil {
+		// 数据服务
+		if err := asql.Delete(tx, "DELETE FROM sys_data_service WHERE table_id_ = ?", id); err != nil {
 			return nil, err
 		}
 
@@ -92,10 +91,15 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 			return nil, err
 		}
 
+		// 数据库表
+		if err := asql.Delete(tx, "DELETE FROM sys_table WHERE id = ?", id); err != nil {
+			return nil, err
+		}
+
 		// 把数据库表名改掉（不实际删除）
-		if exists := o.exists(tx, table); exists {
-			query := fmt.Sprintf("ALTER TABLE %s RENAME TO  %s ;", table, fmt.Sprintf("_%s", table))
-			if _, err := asql.Exec(tx, query); err != nil {
+		ddl := ctx.DDL(tx, table, nil, nil) // 数据定义语法
+		if ddl.Exists() {
+			if err := ddl.Drop(); err != nil {
 				return nil, err
 			}
 		}
@@ -110,20 +114,6 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("unrecognizable operation %s ", operation)
-}
-
-func (o *SysTables) exists(tx *sql.Tx, table string) bool {
-	var id string
-
-	if err := asql.SelectRow(tx, fmt.Sprintf("SELECT TOP 1 'AAABBB' AS id FROM %s", table)).Scan(&id); err != nil {
-		if err == sql.ErrNoRows {
-			return true
-		}
-
-		return false
-	}
-
-	return true
 }
 
 func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
@@ -146,43 +136,11 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		return nil, errors.New("empty table columns")
 	}
 
-	buf := new(bytes.Buffer)
+	ddl := ctx.DDL(tx, table, cols, present) // 数据定义语法
+	if !ddl.Exists() {
 
-	// 表是否存在
-	exists := o.exists(tx, table)
-	if !exists {
-		// 创建数据库表
-		buf.WriteString(fmt.Sprintf("\n CREATE TABLE %s ( \n", table))
-
-		switch base.Config.DBDriver {
-		case "mysql":
-			for _, col := range cols {
-				if strings.EqualFold(col, "id") {
-					buf.WriteString(fmt.Sprintf("\t %s %s COLLATE utf8mb4_general_ci NOT NULL, \n", col, present[col]))
-				} else {
-					buf.WriteString(fmt.Sprintf("\t %s %s COLLATE utf8mb4_general_ci DEFAULT NULL, \n", col, present[col]))
-				}
-			}
-
-			buf.WriteString("\t PRIMARY KEY (`id`) \n")
-			buf.WriteString(" ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci")
-		case "dm":
-			for _, col := range cols {
-				if strings.EqualFold(col, "id") {
-					buf.WriteString(fmt.Sprintf("\t %s %s NOT NULL, \n", col, present[col]))
-				} else {
-					buf.WriteString(fmt.Sprintf("\t %s %s NULL, \n", col, present[col]))
-				}
-			}
-
-			buf.WriteString(fmt.Sprintf("\t CONSTRAINT %s_PK PRIMARY KEY (id) \n", table))
-			buf.WriteString(" );")
-		default:
-			return nil, fmt.Errorf("unsupport database driver %q", base.Config.DBDriver)
-		}
-
-		// 执行创建表
-		if _, err := asql.Exec(tx, buf.String()); err != nil {
+		// 执行创建数据库表
+		if err := ddl.Create(); err != nil {
 			return nil, err
 		}
 
@@ -200,34 +158,9 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 			return nil, err
 		}
 	} else {
-		sLatest, sCols := make(map[string]string), make([]string, 0)
-		switch base.Config.DBDriver {
-		case "mysql":
-			res, err := asql.Select(tx, fmt.Sprintf("DESC %s", table))
-			if err != nil {
-				return nil, err
-			}
-
-			sLatest, sCols = base.ResAsMapSlice(res, false, "Field", "Type")
-		case "dm":
-			query := `
-		SELECT column_name AS column_name,
-			CASE data_type 
-				WHEN 'VARCHAR' THEN CONCAT('varchar','(',CAST(data_length AS varchar),')') 
-				WHEN 'NUMERIC' THEN CONCAT('decimal','(',CAST(data_precision AS varchar),',',CAST(data_scale AS varchar),')') 
-				ELSE lower(data_type)
-			END AS data_type 
-		FROM user_tab_columns 
-		WHERE table_name = ?
-		`
-			res, err := asql.Select(tx, query, table)
-			if err != nil {
-				return nil, err
-			}
-
-			sLatest, sCols = base.ResAsMapSlice(res, false, "column_name", "data_type")
-		default:
-			return nil, fmt.Errorf("unsupport database driver %q", base.Config.DBDriver)
+		sCols, sLatest, err := ddl.Desc()
+		if err != nil {
+			return nil, err
 		}
 
 		latest := make(map[string]string)
@@ -249,7 +182,7 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 			}
 
 			// 是否顺序变化，达梦不支持修改列顺序
-			if !strings.EqualFold(base.Config.DBDriver, "dm") {
+			if ddl.IsSupportSequence() {
 				for i, col := range cols {
 					if !strings.EqualFold(col, xCols[i]) {
 						changed[col] = present[col]
@@ -263,63 +196,9 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 			}
 		}
 
-		switch base.Config.DBDriver {
-		case "mysql":
-			syntax := make([]string, 0, len(added)+len(changed)+len(removed))
-			buf.WriteString(fmt.Sprintf("\n ALTER TABLE %s ", table))
-
-			var lastCol string
-			for _, col := range cols {
-				// 添加
-				if _, ok := added[col]; ok {
-					if len(lastCol) < 1 {
-						syntax = append(syntax, fmt.Sprintf("\n\t ADD COLUMN %s %s COLLATE utf8mb4_general_ci DEFAULT NULL FIRST", col, present[col]))
-					} else {
-						syntax = append(syntax, fmt.Sprintf("\n\t ADD COLUMN %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", col, present[col], lastCol))
-					}
-				}
-
-				// 修改
-				if _, ok := changed[col]; ok {
-					if len(lastCol) < 1 {
-						syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL FIRST", col, col, present[col]))
-					} else {
-						syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", col, col, present[col], lastCol))
-					}
-				}
-
-				lastCol = col
-			}
-
-			// 删除（不实际删除列），并且移动至表最后
-			for field, xType := range removed {
-				syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", field, fmt.Sprintf("_%s", field), xType, lastCol))
-			}
-
-			buf.WriteString(strings.Join(syntax, ","))
-			buf.WriteByte(';')
-
-			if _, err := asql.Exec(tx, buf.String()); err != nil {
-				return nil, err
-			}
-		case "dm":
-			// 添加
-			for _, col := range cols {
-				if _, ok := added[col]; ok {
-					if _, err := asql.Exec(tx, fmt.Sprintf("ALTER TABLE %s ADD %s %s NULL;", table, col, present[col])); err != nil {
-						return nil, err
-					}
-				}
-			}
-
-			// 删除，不实际删除列
-			for field := range removed {
-				if _, err := asql.Exec(tx, fmt.Sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s;", table, field, fmt.Sprintf("_%s", field))); err != nil {
-					return nil, err
-				}
-			}
-		default:
-
+		// 修改数据库表
+		if err := ddl.Alter(added, changed, removed); err != nil {
+			return nil, err
 		}
 	}
 

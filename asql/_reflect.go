@@ -1,6 +1,5 @@
 package asql
 
-
 //type Student struct {
 //	ID    string    `name:"id" required:"true"`
 //	Name  string    `name:"name" required:"true"`
@@ -81,7 +80,7 @@ package asql
 //			in = append(in, reflect.ValueOf(inValue))
 //		}
 //
-//		logrus.Debugf("Create In Values %#v", in[1].Elem().Interface())
+//		logrus.Debugf("Create In Values %#v", in[1].Elem().DDL())
 //		logrus.Debugf("Create Function Num In %d", len(in))
 //		logrus.Debugf("Create Function Num In %#v", reflect.ValueOf(student).Method(i))
 //		reflect.ValueOf(student).Method(i).Call(in)
@@ -106,7 +105,7 @@ package asql
 //		}
 //		value.SetFloat(num)
 //	case reflect.Struct:
-//		_, ok := value.Interface().(time.Time)
+//		_, ok := value.DDL().(time.Time)
 //		if !ok {
 //			logrus.Errorf("UNDEFINED TYPE %#v", kind.String())
 //			return nil
