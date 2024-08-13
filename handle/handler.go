@@ -9,6 +9,7 @@ import (
 	"go-phoenix/base"
 	"net/http"
 	"reflect"
+	"runtime"
 	"runtime/debug"
 	"strings"
 )
@@ -119,7 +120,8 @@ func handlerError(op *Operate, w http.ResponseWriter, msg error) {
 	w.WriteHeader(http.StatusInternalServerError)
 
 	// 记录错误日志
-	logrus.Error(msg)
+	_, file, line, _ := runtime.Caller(1)
+	logrus.Error(fmt.Errorf("%s:%d %s", strings.Split(file, "/go-phoenix/")[1], line, msg.Error()))
 	if op != nil {
 		op.error(msg)
 	}
