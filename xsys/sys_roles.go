@@ -11,7 +11,7 @@ type SysRoles struct {
 }
 
 func (o *SysRoles) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	query := "SELECT id, code_, name_, description_, create_at_ FROM sys_role ORDER BY order_ ASC"
+	query := "SELECT id, name_, description_, create_at_ FROM sys_role ORDER BY order_ ASC"
 
 	return asql.Select(tx, query)
 }
@@ -20,7 +20,6 @@ func (o *SysRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	operation := ctx.PostFormValue("operation")
 
 	id := ctx.PostFormValue("id")
-	code := ctx.PostFormValue("code_")
 	name := ctx.PostFormValue("name_")
 	description := ctx.PostFormValue("description_")
 
@@ -32,16 +31,16 @@ func (o *SysRoles) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	switch operation {
 	case "insert":
 		newId := asql.GenerateId()
-		query := "INSERT INTO sys_role(id, code_, name_, description_, order_, create_at_) VALUES (?,?,?,?,?,?)"
-		args := []interface{}{newId, code, name, description, asql.GenerateOrderId(), now}
+		query := "INSERT INTO sys_role(id, name_, description_, order_, create_at_) VALUES (?,?,?,?,?,?)"
+		args := []interface{}{newId, name, description, asql.GenerateOrderId(), now}
 		if err := asql.Insert(tx, query, args...); err != nil {
 			return nil, err
 		}
 
 		return map[string]interface{}{"status": "success", "newid": newId, "create_at_": now}, nil
 	case "update":
-		query := "UPDATE sys_role SET code_ = ?, name_ = ?, description_ = ?, update_at_ = ? WHERE id = ?"
-		args := []interface{}{code, name, description, now, id}
+		query := "UPDATE sys_role SET  name_ = ?, description_ = ?, update_at_ = ? WHERE id = ?"
+		args := []interface{}{name, description, now, id}
 		if err := asql.Update(tx, query, args...); err != nil {
 			return nil, err
 		}
