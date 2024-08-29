@@ -14,7 +14,7 @@ import (
 func (s *Sql) Select(args ...string) map[string]interface{} {
 	params := s.ctx.Params()
 
-	var fields, from, where, groupBy, orderBy string
+	var fields, from, where, groupBy, having, orderBy string
 	for _, arg := range args {
 		arg := strings.ToLower(strings.TrimSpace(arg))
 		if strings.HasPrefix(arg, "select ") {
@@ -25,6 +25,8 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 			where = strings.TrimSpace(strings.TrimPrefix(arg, "where "))
 		} else if strings.HasPrefix(arg, "group ") {
 			groupBy = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.TrimPrefix(arg, "group ")), "by "))
+		} else if strings.HasPrefix(arg, "having ") {
+			having = strings.TrimSpace(strings.TrimPrefix(arg, "having "))
 		} else if strings.HasPrefix(arg, "order ") {
 			orderBy = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.TrimPrefix(arg, "order ")), "by "))
 		} else {
@@ -135,9 +137,14 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 		sqs = append(sqs, fmt.Sprintf("WHERE %s", strings.Join(wheres, " AND ")))
 	}
 
-	// GROUP BY HAVING
+	// GROUP BY
 	if len(groupBy) > 0 {
 		sqs = append(sqs, fmt.Sprintf("GROUP BY %s", groupBy))
+	}
+
+	// HAVING
+	if len(having) > 0 {
+		sqs = append(sqs, fmt.Sprintf("HAVING %s", having))
 	}
 
 	// 是否为仅获取数据列

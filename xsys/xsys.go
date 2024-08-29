@@ -20,6 +20,7 @@ func (o *Sys) GetDictionary(tx *sql.Tx, ctx *handle.Context) (interface{}, error
 		SELECT sys_dict_item.code_ AS id, sys_dict_kind.code_ AS code, sys_dict_item.name_ AS value
 		FROM sys_dict_kind, sys_dict_item
 		WHERE sys_dict_kind.id = sys_dict_item.kind_id_
+		ORDER BY sys_dict_kind.order_ ASC, sys_dict_item.order_ ASC
 	`
 
 	return asql.Select(tx, query)
