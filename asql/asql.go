@@ -1,7 +1,6 @@
 package asql
 
 import (
-	"github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -35,7 +34,6 @@ var ignoreOnce = sync.Once{}
 
 func IsSaveIgnore(field string) bool {
 	ignoreOnce.Do(func() {
-		logrus.Debugf("<<<<<<<<<<< asql.IsSaveIgnore() Do >>>>>>>>>>>>")
 		for _, col := range SysColumns {
 			if col.SaveIgnore {
 				ignore[col.Code] = struct{}{}
