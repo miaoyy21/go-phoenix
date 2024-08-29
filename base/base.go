@@ -2,6 +2,7 @@ package base
 
 import (
 	"net/url"
+	"strings"
 )
 
 func CompareMap(latest map[string]string, present map[string]string) (map[string]string, map[string]string, map[string]string) {
@@ -41,4 +42,17 @@ func GetURLValues(values url.Values) map[string]string {
 	}
 
 	return ms
+}
+
+func CompareMapChanged(latest map[string]string, present map[string]string) map[string]struct{} {
+	changed := make(map[string]struct{})
+
+	// 增加
+	for key, value := range present {
+		if v, ok := latest[key]; !ok || !strings.EqualFold(value, v) {
+			changed[key] = struct{}{}
+		}
+	}
+
+	return changed
 }

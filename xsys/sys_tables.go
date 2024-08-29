@@ -153,7 +153,7 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 
 		// 自动生成数据查询服务
 		sQuery := "INSERT INTO sys_data_service(id, table_id_, code_, name_, method_, timeout_, source_, order_, create_at_) VALUES (?,?,?,?,?,?,?,?,?)"
-		sArgs := []interface{}{asql.GenerateId(), id, "save", "保存服务(新增 修改 删除 排序)", "POST", 0, fmt.Sprintf("/* 保存实现：插入、更新、删除、排序 等操作*/\nsql.Save(%q);", table), asql.GenerateOrderId(), asql.GetNow()}
+		sArgs := []interface{}{asql.GenerateId(), id, "save", "保存服务(新增 修改 删除 排序)", "POST", 0, fmt.Sprintf("/* 保存实现：插入、更新、删除、排序 等操作*/\nsql.Save(%q,ctx.Values());", table), asql.GenerateOrderId(), asql.GetNow()}
 		if err := asql.Insert(tx, sQuery, sArgs...); err != nil {
 			return nil, err
 		}

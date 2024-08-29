@@ -12,8 +12,9 @@ import (
 )
 
 // Insert 插入操作
-func Insert(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.Values()
+func Insert(tx *sql.Tx, ctx *handle.Context, table string, values map[string]string) map[string]interface{} {
+	// 比较原始提交数据与待更新数据的差异，用于返回客户端
+	changed := base.CompareMapChanged(base.GetURLValues(ctx.PostForm), values)
 
 	query := `
 		SELECT sys_table_column.code_
@@ -70,7 +71,9 @@ func Insert(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{
 		case "create_at_":
 			fields[col] = asql.GetNow()
 		default:
-			isRet = false
+			if _, ok := changed[col]; !ok {
+				isRet = false
+			}
 		}
 
 		if isRet {

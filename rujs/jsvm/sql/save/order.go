@@ -9,9 +9,7 @@ import (
 )
 
 // Order 排序操作（使用排序的依据必须是 order_ ASC）
-func Order(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.Values()
-
+func Order(tx *sql.Tx, ctx *handle.Context, table string, values map[string]string) map[string]interface{} {
 	// 起始行
 	source, ok := values["id"]
 	if !ok {

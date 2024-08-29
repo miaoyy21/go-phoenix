@@ -12,9 +12,7 @@ import (
 )
 
 // Update 更新操作
-func Update(tx *sql.Tx, ctx *handle.Context, table string) map[string]interface{} {
-	values := ctx.Values()
-
+func Update(tx *sql.Tx, ctx *handle.Context, table string, values map[string]string) map[string]interface{} {
 	query := `
 		SELECT sys_table_column.code_
 		FROM sys_table
