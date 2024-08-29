@@ -11,7 +11,7 @@ func setCookie(ctx *handle.Context, name string, value string, expire time.Time)
 		Name:     name,
 		Path:     "/",
 		Value:    value,
-		HttpOnly: true,
+		HttpOnly: false,
 		Expires:  expire,
 	}
 
