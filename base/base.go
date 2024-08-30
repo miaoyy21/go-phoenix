@@ -44,13 +44,13 @@ func GetURLValues(values url.Values) map[string]string {
 	return ms
 }
 
-func CompareMapChanged(latest map[string]string, present map[string]string) map[string]struct{} {
-	changed := make(map[string]struct{})
+func CompareMapChanged(latest map[string]string, present map[string]string) map[string]string {
+	changed := make(map[string]string)
 
 	// 增加
 	for key, value := range present {
 		if v, ok := latest[key]; !ok || !strings.EqualFold(value, v) {
-			changed[key] = struct{}{}
+			changed[key] = value
 		}
 	}
 

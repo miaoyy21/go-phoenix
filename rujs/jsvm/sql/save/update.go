@@ -13,6 +13,9 @@ import (
 
 // Update 更新操作
 func Update(tx *sql.Tx, ctx *handle.Context, table string, values map[string]string) map[string]interface{} {
+	// 比较原始提交数据与待更新数据的差异，用于返回客户端
+	changed := base.CompareMapChanged(base.GetURLValues(ctx.PostForm), values)
+
 	query := `
 		SELECT sys_table_column.code_
 		FROM sys_table
@@ -61,6 +64,9 @@ func Update(tx *sql.Tx, ctx *handle.Context, table string, values map[string]str
 
 	// 返回值
 	ret := make(map[string]interface{})
+	for k, v := range changed {
+		ret[k] = v
+	}
 
 	// update_at_
 	if _, ok := cols["update_at_"]; ok {

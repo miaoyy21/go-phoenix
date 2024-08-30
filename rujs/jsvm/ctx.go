@@ -1,6 +1,7 @@
 package jsvm
 
 import (
+	"go-phoenix/asql"
 	"go-phoenix/handle"
 )
 
@@ -42,4 +43,8 @@ func (b *Context) UserCode() string {
 
 func (b *Context) UserName() string {
 	return b.ctx.UserName()
+}
+
+func (b *Context) DateTime() string {
+	return asql.GetNow()
 }
