@@ -184,19 +184,29 @@ func (ctx *Context) PostFormNullableValue(key string) interface{} {
 	return sParent
 }
 
-func (ctx *Context) SortFilters(mapFields map[string]string) ([]string, []string, []interface{}) {
+func (ctx *Context) SortFilters(mapFields map[string]string) ([]string, []string, []interface{}, []string, []interface{}) {
 	sorts := make([]string, 0)
 	filters := make([]string, 0)
 	filtered := make([]interface{}, 0)
+
+	fullFilters := make([]string, 0)
+	fullFiltered := make([]interface{}, 0)
 
 	// 多列排序时，必须依次从最原始的请求参数中获取排序字段
 	uri, err := url.ParseRequestURI(ctx.RequestURI)
 	if err != nil {
 		logrus.Errorf("url.ParseRequestURI(%s) Failure :: %s", ctx.RequestURI, err.Error())
-		return sorts, filters, filtered
+		return sorts, filters, filtered, fullFilters, fullFiltered
 	}
 
-	params := strings.Split(uri.RawQuery, "&")
+	// URL解码
+	rawQuery, err := url.QueryUnescape(uri.RawQuery)
+	if err != nil {
+		logrus.Errorf("url.QueryUnescape(%s) Failure :: %s", uri.RawQuery, err.Error())
+		return sorts, filters, filtered, fullFilters, fullFiltered
+	}
+
+	params := strings.Split(rawQuery, "&")
 	for _, param := range params {
 		pairs := strings.Split(param, "=")
 		if len(pairs) != 2 {
@@ -241,9 +251,30 @@ func (ctx *Context) SortFilters(mapFields map[string]string) ([]string, []string
 
 			filtered = append(filtered, fmt.Sprintf("%%%s%%", val))
 		}
+
+		// 符合全部过滤规则 full_filter[...]={value}
+		if strings.HasPrefix(key, "full_filter[") && strings.HasSuffix(key, "]") {
+			cols := key[12 : len(key)-1]
+
+			val, err := url.PathUnescape(strings.ToUpper(value))
+			if err != nil {
+				logrus.Errorf("url.PathUnescape(%s) Failure :: %s", strings.ToUpper(value), err.Error())
+				continue
+			}
+
+			for _, col := range strings.Split(cols, ",") {
+				if newKey, ok := mapFields[col]; ok {
+					fullFilters = append(fullFilters, fmt.Sprintf("UPPER(%s) LIKE ?", newKey))
+				} else {
+					fullFilters = append(fullFilters, fmt.Sprintf("UPPER(%s) LIKE ?", col))
+				}
+
+				fullFiltered = append(fullFiltered, fmt.Sprintf("%%%s%%", val))
+			}
+		}
 	}
 
-	return sorts, filters, filtered
+	return sorts, filters, filtered, fullFilters, fullFiltered
 }
 
 func (ctx *Context) ClientIP() string {

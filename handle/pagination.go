@@ -13,9 +13,11 @@ type Pagination struct {
 	start int
 	count int
 
-	sorts    []string
-	filters  []string
-	filtered []interface{}
+	sorts        []string
+	filters      []string
+	filtered     []interface{}
+	fullFilters  []string      // TODO
+	fullFiltered []interface{} // TODO
 
 	// 直接导出为JSON
 	Pos        int                 `json:"pos"`
@@ -33,18 +35,20 @@ func NewPagination(ctx *Context, defaultSorts []string) *Pagination {
 	}
 
 	// 如果没进行排序，那么使用默认排序
-	sorts, filters, filtered := ctx.SortFilters(map[string]string{})
+	sorts, filters, filtered, fullFilters, fullFiltered := ctx.SortFilters(map[string]string{})
 	if len(sorts) < 1 && len(defaultSorts) > 0 {
 		sorts = append(sorts, defaultSorts...)
 	}
 
 	return &Pagination{
-		start:    start,
-		count:    count,
-		sorts:    sorts,
-		filters:  filters,
-		filtered: filtered,
-		Pos:      start,
+		start:        start,
+		count:        count,
+		sorts:        sorts,
+		filters:      filters,
+		filtered:     filtered,
+		fullFilters:  fullFilters,
+		fullFiltered: fullFiltered,
+		Pos:          start,
 	}
 }
 

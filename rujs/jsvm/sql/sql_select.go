@@ -67,7 +67,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 获取排序和过滤条件
-	sorts, filters, filtered := s.ctx.SortFilters(mapFields)
+	sorts, filters, filtered, fullFilters, fullFiltered := s.ctx.SortFilters(mapFields)
 
 	// 获取参数，排除filter和sort
 	newParams := make(map[string]string)
@@ -82,6 +82,10 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 		}
 
 		if strings.HasPrefix(key, "filter[") && strings.HasSuffix(key, "]") {
+			continue
+		}
+
+		if strings.HasPrefix(key, "full_filter[") && strings.HasSuffix(key, "]") {
 			continue
 		}
 
@@ -113,10 +117,16 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 		wheres = append(wheres, strings.Join(filters, " AND "))
 	}
 
+	// 全过滤条件
+	if len(fullFilters) > 0 {
+		wheres = append(wheres, fmt.Sprintf("(%s)", strings.Join(fullFilters, " OR ")))
+	}
+
 	// 防止SQL注入
 	arguments := make([]interface{}, 0, len(mapped)+len(filtered))
 	arguments = append(arguments, mapped...)
 	arguments = append(arguments, filtered...)
+	arguments = append(arguments, fullFiltered...)
 
 	/************************** ORDER BY **************************/
 	if len(sorts) > 0 {
