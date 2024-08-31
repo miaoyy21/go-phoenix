@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
+	vm "go-phoenix/rujs/jsvm/sql/save"
 )
 
 type Sql struct {
@@ -58,4 +59,20 @@ func (s *Sql) Exec(query string, args ...interface{}) int64 {
 	}
 
 	return n
+}
+
+func (s *Sql) Insert(table string, values map[string]string) (result map[string]interface{}) {
+	return vm.Insert(s.tx, s.ctx, table, values)
+}
+
+func (s *Sql) Update(table string, values map[string]string) (result map[string]interface{}) {
+	return vm.Update(s.tx, s.ctx, table, values)
+}
+
+func (s *Sql) Delete(table string, values map[string]string) (result map[string]interface{}) {
+	return vm.Delete(s.tx, s.ctx, table, values)
+}
+
+func (s *Sql) Order(table string, values map[string]string) (result map[string]interface{}) {
+	return vm.Order(s.tx, s.ctx, table, values)
 }

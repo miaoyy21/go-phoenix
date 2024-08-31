@@ -12,7 +12,10 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync"
 )
+
+var rwMutex sync.RWMutex
 
 // Handler 处理所有的HTTP请求
 func Handler(db *sql.DB, md interface{}) http.Handler {
@@ -51,6 +54,15 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 		if err != nil {
 			handlerError(op, w, err)
 			return
+		}
+
+		// 由于使用的是数据库事务，需要添加全局读写锁，保证数据更新的正确性，典型的应用场景：批量的自动编码
+		if strings.EqualFold(r.Method, "GET") {
+			rwMutex.RLock()
+			defer rwMutex.RUnlock()
+		} else {
+			rwMutex.Lock()
+			defer rwMutex.Unlock()
 		}
 
 		// 开启事务
