@@ -23,12 +23,7 @@ func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 
 	var method, source string
 	var timeout int
-	query := `
-		SELECT method_, source_, timeout_
-		FROM sys_data_service, sys_table
-		WHERE sys_data_service.table_id_ = sys_table.id 
-			AND sys_table.code_ = ? AND sys_data_service.code_ = ?
-	`
+	query := `SELECT method_, source_, timeout_ FROM sys_data_service, sys_table WHERE sys_data_service.table_id_ = sys_table.id AND sys_table.code_ = ? AND sys_data_service.code_ = ?`
 	if err := asql.SelectRow(tx, query, sTable, sCode).Scan(&method, &source, &timeout); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("数据服务 %q 不存在", service)
@@ -53,13 +48,7 @@ func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 func (o *SysDataService) GetByTableId(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	tableId := ctx.FormValue("table_id")
 
-	query := `
-		SELECT id, table_id_, code_, name_, method_, 
-			source_, timeout_, create_at_, update_at_ 
-		FROM sys_data_service 
-		WHERE table_id_ = ? 
-		ORDER BY order_ ASC
-	`
+	query := `SELECT id, table_id_, code_, name_, method_, source_, timeout_, create_at_, update_at_ FROM sys_data_service WHERE table_id_ = ? ORDER BY order_ ASC`
 	res, err := asql.Select(tx, query, tableId)
 	if err != nil {
 		return nil, err
