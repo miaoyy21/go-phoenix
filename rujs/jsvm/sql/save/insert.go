@@ -16,12 +16,7 @@ func Insert(tx *sql.Tx, ctx *handle.Context, table string, values map[string]str
 	// 比较原始提交数据与待更新数据的差异，用于返回客户端
 	changed := base.CompareMapChanged(base.GetURLValues(ctx.PostForm), values)
 
-	query := `
-		SELECT sys_table_column.code_
-		FROM sys_table
-			LEFT JOIN sys_table_column ON sys_table.id = sys_table_column.table_id_
-		WHERE sys_table.code_ = ?
-	`
+	query := ` SELECT sys_table_column.code_ FROM sys_table LEFT JOIN sys_table_column ON sys_table.id = sys_table_column.table_id_ WHERE sys_table.code_ = ?`
 	args := []interface{}{table}
 	res, err := asql.Select(tx, query, args...)
 	if err != nil {
