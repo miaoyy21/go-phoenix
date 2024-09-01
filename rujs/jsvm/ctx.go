@@ -48,3 +48,7 @@ func (b *Context) UserName() string {
 func (b *Context) DateTime() string {
 	return asql.GetNow()
 }
+
+func (b *Context) Date() string {
+	return asql.GetNow()[:10]
+}
