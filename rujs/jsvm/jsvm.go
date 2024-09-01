@@ -25,6 +25,11 @@ func NewVM(tx *sql.Tx, ctx *handle.Context, reg func(*otto.Otto) error) (*otto.O
 		return nil, err
 	}
 
+	// 工具库
+	if err := vmo.Set("utils", NewUtils()); err != nil {
+		return nil, err
+	}
+
 	// 其他对象
 	if reg != nil {
 		if err := reg(vmo); err != nil {
