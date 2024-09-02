@@ -112,14 +112,16 @@ func (op *Operate) save() {
 		"	menu_id_, path_, params_, values_, " +
 		"	user_id_, user_code_, user_name_, " +
 		"	depart_id_, depart_code_, depart_name_, " +
-		"	start_, end_, duration_, status_, message_) " +
+		"	start_, end_, " +
+		"	duration_, status_, message_) " +
 		"VALUES (?,?,?,?,?, ?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?)"
 	args := []interface{}{
 		op.id, op.ctx.ClientIP(), op.ctx.ContentLength, op.userAgent, op.ctx.Method,
 		op.menu, op.ctx.Path(), op.params, op.values,
 		op.ctx.UserId(), op.ctx.UserCode(), op.ctx.UserName(),
 		op.ctx.DepartId(), op.ctx.DepartCode(), op.ctx.DepartName(),
-		op.start, op.end, op.duration, op.status, op.message}
+		op.start.Format("2006-01-02 15:04:05"), op.end.Format("2006-01-02 15:04:05"),
+		op.duration, op.status, op.message}
 	if _, err := op.db.Exec(query, args...); err != nil {
 		logrus.Errorf("Write Operate Log Failure :: %s", err.Error())
 	}
