@@ -19,7 +19,7 @@ func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	var tasks int
 
 	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := asql.SelectRow(tx, query, ctx.UserId(), "Executing").Scan(&tasks); err != nil {
+	if err := tx.QueryRow(query, ctx.UserId(), "Executing").Scan(&tasks); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -27,7 +27,7 @@ func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		tasks = 0
 	}
 
-	if _, err := asql.Exec(tx, "UPDATE sys_user SET sync_at_ = ? WHERE id = ?", asql.GetNow(), ctx.UserId()); err != nil {
+	if _, err := tx.Exec("UPDATE sys_user SET sync_at_ = ? WHERE id = ?", asql.GetNow(), ctx.UserId()); err != nil {
 		return nil, err
 	}
 
