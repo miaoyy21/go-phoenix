@@ -18,8 +18,8 @@ type Sys struct {
 func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	var tasks int
 
-	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := tx.QueryRow(query, ctx.UserId(), "Executing").Scan(&tasks); err != nil {
+	// 查询待办事项条数
+	if err := tx.QueryRow("SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", ctx.UserId(), "Executing").Scan(&tasks); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -27,7 +27,8 @@ func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		tasks = 0
 	}
 
-	if _, err := tx.Exec("UPDATE sys_user SET sync_at_ = ? WHERE id = ?", asql.GetNow(), ctx.UserId()); err != nil {
+	// 同时记录用户的活跃时间，用于判断用户是否在线
+	if _, err := tx.Exec("UPDATE sys_user SET online_at_ = ? WHERE id = ?", asql.GetNow(), ctx.UserId()); err != nil {
 		return nil, err
 	}
 
