@@ -53,6 +53,11 @@ func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string,
 
 		entry := make(map[string]string)
 		for i, col := range columns {
+			// 不返回排序的序号
+			if col == "order_" {
+				continue
+			}
+
 			if values[i] != nil {
 				value := string(values[i])
 

@@ -39,7 +39,7 @@ func menusByOrg(tx *sql.Tx, org ...interface{}) ([]map[string]string, error) {
 	}
 
 	// 查询所有菜单，构建菜单树
-	menusFull, err := asql.Select(tx, "SELECT id,menu_,name_,parent_id_,icon_,order_ FROM sys_menu")
+	menusFull, err := asql.Select(tx, "SELECT id,menu_,name_,parent_id_,icon_,order_ AS seq FROM sys_menu")
 	if err != nil {
 		return nil, err
 	}
