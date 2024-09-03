@@ -182,7 +182,12 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 
 		// 查询总记录数量
 		var totalCount int
-		if err := asql.SelectRow(s.tx, fmt.Sprintf("SELECT COUNT(1) %s", strings.Join(sqs, " ")), arguments...).Scan(&totalCount); err != nil {
+
+		var totalQuery = fmt.Sprintf("SELECT COUNT(1) %s", strings.Join(sqs, " "))
+		if len(groupBy) > 0 {
+			totalQuery = fmt.Sprintf("SELECT SUM(COUNT(1)) %s", strings.Join(sqs, " "))
+		}
+		if err := asql.SelectRow(s.tx, totalQuery, arguments...).Scan(&totalCount); err != nil {
 			logrus.Panic(err)
 		}
 
