@@ -4,6 +4,10 @@ import (
 	"go-phoenix/xwf/enum"
 )
 
+func (node *Node) FlowId() string {
+	return node.flowId
+}
+
 func (node *Node) DiagramId() string {
 	return node.diagramId
 }

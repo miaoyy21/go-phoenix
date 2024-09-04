@@ -21,6 +21,7 @@ type Node struct {
 	tx  *sql.Tx
 	ctx *handle.Context
 
+	flowId    string
 	diagramId string
 	key       int
 	category  enum.Category
@@ -32,7 +33,7 @@ type Node struct {
 	onRejectScript string
 }
 
-func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowable, error) {
+func NewNode(tx *sql.Tx, ctx *handle.Context, flowId string, diagramId string, key int) (Flowable, error) {
 	var category enum.Category
 	var code, name string
 	var rejectable, requireRejectComment, revocable bool
@@ -76,6 +77,7 @@ func NewNode(tx *sql.Tx, ctx *handle.Context, diagramId string, key int) (Flowab
 		tx:  tx,
 		ctx: ctx,
 
+		flowId:    flowId,
 		diagramId: diagramId,
 		key:       key,
 		category:  category,
@@ -160,7 +162,7 @@ func (node *Node) Backwards(values string) ([]Flowable, error) {
 			}
 		}
 
-		n, err := NewNode(node.tx, node.ctx, node.diagramId, key)
+		n, err := NewNode(node.tx, node.ctx, node.flowId, node.diagramId, key)
 		if err != nil {
 			return nil, err
 		}

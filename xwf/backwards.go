@@ -19,7 +19,7 @@ type Backward struct {
 }
 
 func backwards(tx *sql.Tx, ctx *handle.Context, diagramId string, key int, flowId string, values string) (interface{}, error) {
-	start, err := flow.NewNode(tx, ctx, diagramId, key)
+	start, err := flow.NewNode(tx, ctx, flowId, diagramId, key)
 	if err != nil {
 		return nil, err
 	}

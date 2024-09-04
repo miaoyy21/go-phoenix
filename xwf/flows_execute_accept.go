@@ -62,7 +62,7 @@ BREAK:
 				continue
 			}
 
-			node, err := flow.NewNode(tx, ctx, diagramId, route)
+			node, err := flow.NewNode(tx, ctx, flowId, diagramId, route)
 			if err != nil {
 				return nil, err
 			}

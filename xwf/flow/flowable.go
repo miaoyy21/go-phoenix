@@ -5,6 +5,7 @@ import (
 )
 
 type Flowable interface {
+	FlowId() string
 	DiagramId() string
 	Key() int
 	Code() string

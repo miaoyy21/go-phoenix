@@ -36,7 +36,7 @@ func (o *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// 节点
-	node, err := flow.NewNode(tx, ctx, diagramId, key)
+	node, err := flow.NewNode(tx, ctx, flowId, diagramId, key)
 	if err != nil {
 		return nil, err
 	}

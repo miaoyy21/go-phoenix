@@ -44,7 +44,7 @@ func (o *Flows) PostStart(tx *sql.Tx, ctx *handle.Context) (interface{}, error) 
 				continue
 			}
 
-			node, err := flow.NewNode(tx, ctx, diagramId, route)
+			node, err := flow.NewNode(tx, ctx, id, diagramId, route)
 			if err != nil {
 				return nil, err
 			}

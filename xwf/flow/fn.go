@@ -12,6 +12,11 @@ func flowReg(node Flowable, data string) func(vm *otto.Otto) error {
 			return err
 		}
 
+		// Flow ID
+		if err := vm.Set("$id", node.FlowId()); err != nil {
+			return err
+		}
+
 		// Convert Data as map<string>interface{}
 		values := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(data), &values); err != nil {

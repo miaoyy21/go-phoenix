@@ -34,7 +34,7 @@ func (o *Flows) PostRemove(tx *sql.Tx, ctx *handle.Context) (interface{}, error)
 	}
 
 	// 节点
-	node, err := flow.NewNode(tx, ctx, diagramId, key)
+	node, err := flow.NewNode(tx, ctx, id, diagramId, key)
 	if err != nil {
 		return nil, err
 	}
