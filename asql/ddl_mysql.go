@@ -78,6 +78,10 @@ func (o *MySqlDDL) Alter(added, changed, removed map[string]string) error {
 
 	// 删除（不实际删除列），并且移动至表最后
 	for field, xType := range removed {
+		if strings.EqualFold(field, "id") {
+			continue
+		}
+
 		syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", field, fmt.Sprintf("_%s", field), xType, lastCol))
 	}
 

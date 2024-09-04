@@ -76,6 +76,10 @@ func (o *DmDDL) Alter(added, changed, removed map[string]string) error {
 
 	// 删除，不实际删除列
 	for field := range removed {
+		if strings.EqualFold(field, "id") {
+			continue
+		}
+
 		if _, err := Exec(o.tx, fmt.Sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s;", o.table, field, fmt.Sprintf("_%s", field))); err != nil {
 			return err
 		}
