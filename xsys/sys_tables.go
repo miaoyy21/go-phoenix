@@ -199,7 +199,7 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 
 			// 没有变化？
 			if len(changed) <= 0 {
-				return map[string]interface{}{"status": "success"}, nil
+				goto DONE
 			}
 		}
 
@@ -209,6 +209,7 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		}
 	}
 
+DONE:
 	done := "Done"
 	if err := asql.Update(tx, "UPDATE sys_table SET sync_status_ = ? WHERE id = ?", done, id); err != nil {
 		return nil, err

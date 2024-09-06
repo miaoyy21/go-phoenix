@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/base"
 	"net/http"
@@ -82,10 +83,14 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 		if failure != nil {
 			if err := tx.Rollback(); err != nil {
 				logrus.Errorf("Request Rollback Failure :: %s", err.Error())
-				return
 			}
 
-			handlerError(op, w, failure.(error))
+			if msError, ok := failure.(mssql.Error); ok {
+				logrus.Errorf("mssql Error Failure :: %s", msError.Message)
+				handlerError(op, w, errors.New(msError.Error()))
+			} else {
+				handlerError(op, w, failure.(error))
+			}
 		} else {
 			if err := tx.Commit(); err != nil {
 				handlerError(op, w, err)

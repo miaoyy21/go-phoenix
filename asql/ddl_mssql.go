@@ -3,6 +3,7 @@ package asql
 import (
 	"bytes"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"go-phoenix/base"
 	"strings"
 )
@@ -12,16 +13,30 @@ type MsSqlDDL struct {
 }
 
 func (o *MsSqlDDL) IsSupportSequence() bool {
-	return true
+	return false
 }
 
 func (o *MsSqlDDL) Desc() (cols []string, present map[string]string, err error) {
-	res, err := Select(o.tx, fmt.Sprintf("DESC %s", o.table))
+	query := `
+		SELECT X1.name AS column_name,
+			CASE X2.name 
+				WHEN 'varchar' THEN X2.name+'('+CONVERT(VARCHAR(10),X1.length)+')' 
+				WHEN 'numeric' THEN X2.name+'('+CONVERT(VARCHAR(2),X1.xprec)+','+CONVERT(VARCHAR(2),X1.xscale)+')' 
+				ELSE X2.name
+			END AS data_type
+		FROM dbo.sysobjects T 
+			INNER JOIN dbo.syscolumns X1 ON X1.id = T.id
+			INNER JOIN dbo.systypes X2 ON X2.xusertype = X1.xtype
+		WHERE T.id = X1.id AND T.xtype = 'U' AND T.status >= 0 AND T.name = ?
+		ORDER BY X1.colid ASC
+	`
+
+	res, err := Select(o.tx, query, o.table)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	present, cols = base.ResAsMapSlice(res, false, "Field", "Type")
+	present, cols = base.ResAsMapSlice(res, false, "column_name", "data_type")
 	return
 }
 
@@ -31,14 +46,14 @@ func (o *MsSqlDDL) Create() error {
 	buf.WriteString(fmt.Sprintf("\n CREATE TABLE %s ( \n", o.table))
 	for _, col := range o.cols {
 		if strings.EqualFold(col, "id") {
-			buf.WriteString(fmt.Sprintf("\t %s %s COLLATE utf8mb4_general_ci NOT NULL, \n", col, o.present[col]))
+			buf.WriteString(fmt.Sprintf("\t %s %s NOT NULL, \n", col, o.present[col]))
 		} else {
-			buf.WriteString(fmt.Sprintf("\t %s %s COLLATE utf8mb4_general_ci DEFAULT NULL, \n", col, o.present[col]))
+			buf.WriteString(fmt.Sprintf("\t %s %s  DEFAULT NULL, \n", col, o.present[col]))
 		}
 	}
 
-	buf.WriteString("\t PRIMARY KEY (`id`) \n")
-	buf.WriteString(" ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;")
+	buf.WriteString(fmt.Sprintf("\t ONSTRAINT %s_PK PRIMARY KEY (id) \n", o.table))
+	buf.WriteString(" ) ;")
 
 	if _, err := Exec(o.tx, buf.String()); err != nil {
 		return err
@@ -48,48 +63,32 @@ func (o *MsSqlDDL) Create() error {
 }
 
 func (o *MsSqlDDL) Alter(added, changed, removed map[string]string) error {
-	buf := new(bytes.Buffer)
-
-	syntax := make([]string, 0, len(added)+len(changed)+len(removed))
-	buf.WriteString(fmt.Sprintf("\n ALTER TABLE %s ", o.table))
-
-	var lastCol string
 	for _, col := range o.cols {
 		// 添加
 		if _, ok := added[col]; ok {
-			if len(lastCol) < 1 {
-				syntax = append(syntax, fmt.Sprintf("\n\t ADD COLUMN %s %s COLLATE utf8mb4_general_ci DEFAULT NULL FIRST", col, o.present[col]))
-			} else {
-				syntax = append(syntax, fmt.Sprintf("\n\t ADD COLUMN %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", col, o.present[col], lastCol))
+			if _, err := Exec(o.tx, fmt.Sprintf("ALTER TABLE %s ADD %s %s NULL;", o.table, col, o.present[col])); err != nil {
+				return err
 			}
 		}
 
 		// 修改
-		if _, ok := changed[col]; ok {
-			if len(lastCol) < 1 {
-				syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL FIRST", col, col, o.present[col]))
-			} else {
-				syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", col, col, o.present[col], lastCol))
+		if aaa, ok := changed[col]; ok {
+			logrus.Infof("%s =>  %s :: %s", col, aaa, o.present[col])
+			if _, err := Exec(o.tx, fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s %s NULL;", o.table, col, o.present[col])); err != nil {
+				return err
 			}
 		}
-
-		lastCol = col
 	}
 
 	// 删除（不实际删除列），并且移动至表最后
-	for field, xType := range removed {
+	for field := range removed {
 		if strings.EqualFold(field, "id") {
 			continue
 		}
 
-		syntax = append(syntax, fmt.Sprintf("\n\t CHANGE COLUMN %s %s %s COLLATE utf8mb4_general_ci DEFAULT NULL AFTER %s", field, fmt.Sprintf("_%s", field), xType, lastCol))
-	}
-
-	buf.WriteString(strings.Join(syntax, ","))
-	buf.WriteByte(';')
-
-	if _, err := Exec(o.tx, buf.String()); err != nil {
-		return err
+		if _, err := Exec(o.tx, fmt.Sprintf("EXEC sp_rename '%s.%s', '%s', 'COLUMN';", o.table, field, fmt.Sprintf("_%s", field))); err != nil {
+			return err
+		}
 	}
 
 	return nil
