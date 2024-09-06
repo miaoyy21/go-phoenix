@@ -70,15 +70,26 @@ func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	switch operation {
 	case "insert":
 		newId := asql.GenerateId()
+
+		// 默认密码
+		var dPwd string
+		if err := asql.SelectRow(tx, "SELECT value_ FROM sys_setting WHERE field_ = ?", "password_default").Scan(&dPwd); err != nil {
+			return nil, err
+		}
+
+		ePwd := base.Config.AesEncodeString(dPwd)
+
 		query := `
-		INSERT INTO sys_user(id, user_code_, user_name_, account_id_,
+		INSERT INTO sys_user(id, user_code_, user_name_, 
+			account_id_, password_, 
 			depart_id_, sex_, is_depart_leader_, valid_, 
 			classification_, telephone_, email_, 
 			birth_, description_, order_, create_at_
-		) VALUES (?,?,?,?, ?,?,?,?, ?,?,?, ?,?,?,?)
+		) VALUES (?,?,?, ?,?, ?,?,?,?, ?,?,?, ?,?,?,?)
 		`
 		args := []interface{}{
-			newId, userCode, userName, accountId,
+			newId, userCode, userName,
+			accountId, ePwd,
 			departId, sex, isDepartLeader, valid,
 			classification, telephone, email,
 			birth, description, asql.GenerateOrderId(), now,
@@ -91,7 +102,7 @@ func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	case "update":
 		query := `
 		UPDATE sys_user 
-		SET user_code_ = ?, user_name_ = ?, account_id_ = ?,  
+		SET user_code_ = ?, user_name_ = ?, account_id_ = ?, 
 			depart_id_ = ?, sex_ = ?, is_depart_leader_ = ?, valid_ = ?, 
 			classification_ = ?, telephone_ = ?, email_ = ?, 
 			birth_ = ?, description_ = ?, update_at_ = ? 
