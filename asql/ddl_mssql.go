@@ -52,7 +52,7 @@ func (o *MsSqlDDL) Create() error {
 		}
 	}
 
-	buf.WriteString(fmt.Sprintf("\t ONSTRAINT %s_PK PRIMARY KEY (id) \n", o.table))
+	buf.WriteString(fmt.Sprintf("\t CONSTRAINT %s_PK PRIMARY KEY (id) \n", o.table))
 	buf.WriteString(" ) ;")
 
 	if _, err := Exec(o.tx, buf.String()); err != nil {
