@@ -6,5 +6,9 @@ go-phoenix_darwin_arm64
 go-phoenix_linux_386
 go-phoenix_windows_386
 
+jzerp_darwin_arm64
+jzerp_linux_386
+jzerp_windows_386
+
 config.json
 config_mysql.json

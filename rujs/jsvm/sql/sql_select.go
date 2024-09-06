@@ -186,7 +186,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 
 		var totalQuery = fmt.Sprintf("SELECT COUNT(1) %s", strings.Join(sqs, " "))
 		if len(groupBy) > 0 {
-			totalQuery = fmt.Sprintf("SELECT COUNT(1) FROM (SELECT 1 %s ) AS _PHOENIX_", strings.Join(sqs, " "))
+			totalQuery = fmt.Sprintf("SELECT COUNT(1) FROM (SELECT 1 AS _ %s ) AS _PHOENIX_", strings.Join(sqs, " "))
 		}
 		if err := asql.SelectRow(s.tx, totalQuery, arguments...).Scan(&totalCount); err != nil {
 			logrus.Panic(err)

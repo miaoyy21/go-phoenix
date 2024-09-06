@@ -1,5 +1,5 @@
 # Binary name
-BINARY=go-phoenix
+BINARY=jzerp
 
 # Builds the project
 build:
