@@ -158,8 +158,9 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 是否为仅获取数据列
+	ddl := asql.NewDDL(s.tx, "*", nil, nil)
 	if _, ok := params["is_parse_columns"]; ok {
-		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\tLIMIT %d,%d \n", fields, strings.Join(sqs, "\n\t"), 0, 1)
+		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\t%s \n", fields, strings.Join(sqs, "\n\t"), ddl.LimitOffset(0, 1))
 		columns, err := s.ParseColumnConfigs(query)
 		if err != nil {
 			logrus.Panic(err)
@@ -192,7 +193,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 		}
 
 		// 根据分页查询当前页
-		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\tORDER BY %s \n\tLIMIT %d,%d \n", fields, strings.Join(sqs, "\n\t"), orderBy, start, count)
+		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\tORDER BY %s \n\t%s \n", fields, strings.Join(sqs, "\n\t"), orderBy, ddl.LimitOffset(start, count))
 		data, err := asql.Select(s.tx, query, arguments...)
 		if err != nil {
 			logrus.Panic(err)

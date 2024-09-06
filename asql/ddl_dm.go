@@ -87,3 +87,7 @@ func (o *DmDDL) Alter(added, changed, removed map[string]string) error {
 
 	return nil
 }
+
+func (o *DmDDL) LimitOffset(start, count int) string {
+	return fmt.Sprintf("LIMIT %d,%d", start, count)
+}

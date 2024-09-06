@@ -62,7 +62,7 @@ func Select(tx *sql.Tx, query string, args ...interface{}) ([]map[string]string,
 				value := string(values[i])
 
 				// 隐式转换时间格式
-				if len(value) == len(time.RFC3339) {
+				if len(value) == len("2006-01-02T15:04:05Z") {
 					dt, err := time.Parse(time.RFC3339, value)
 					if err == nil {
 						if dt.Hour()+dt.Minute()+dt.Second() == 0 {

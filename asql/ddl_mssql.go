@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-type MySqlDDL struct {
+type MsSqlDDL struct {
 	*DDLBase
 }
 
-func (o *MySqlDDL) IsSupportSequence() bool {
+func (o *MsSqlDDL) IsSupportSequence() bool {
 	return true
 }
 
-func (o *MySqlDDL) Desc() (cols []string, present map[string]string, err error) {
+func (o *MsSqlDDL) Desc() (cols []string, present map[string]string, err error) {
 	res, err := Select(o.tx, fmt.Sprintf("DESC %s", o.table))
 	if err != nil {
 		return nil, nil, err
@@ -25,7 +25,7 @@ func (o *MySqlDDL) Desc() (cols []string, present map[string]string, err error) 
 	return
 }
 
-func (o *MySqlDDL) Create() error {
+func (o *MsSqlDDL) Create() error {
 	buf := new(bytes.Buffer)
 
 	buf.WriteString(fmt.Sprintf("\n CREATE TABLE %s ( \n", o.table))
@@ -47,7 +47,7 @@ func (o *MySqlDDL) Create() error {
 	return nil
 }
 
-func (o *MySqlDDL) Alter(added, changed, removed map[string]string) error {
+func (o *MsSqlDDL) Alter(added, changed, removed map[string]string) error {
 	buf := new(bytes.Buffer)
 
 	syntax := make([]string, 0, len(added)+len(changed)+len(removed))
@@ -95,6 +95,6 @@ func (o *MySqlDDL) Alter(added, changed, removed map[string]string) error {
 	return nil
 }
 
-func (o *MySqlDDL) LimitOffset(start, count int) string {
-	return fmt.Sprintf("LIMIT %d,%d", start, count)
+func (o *MsSqlDDL) LimitOffset(start, count int) string {
+	return fmt.Sprintf("OFFSET %d ROWS FETCH NEXT %d ROWS ONLY", start, count)
 }
