@@ -40,5 +40,5 @@ func (u *Utils) NewDecimal(value interface{}) decimal.Decimal {
 		logrus.Panicf("%#v 无法转换为decimal.Decimal类型", value)
 	}
 
-	return decimal.NewFromInt(0)
+	return decimal.NewFromInt(0).Round(2)
 }
