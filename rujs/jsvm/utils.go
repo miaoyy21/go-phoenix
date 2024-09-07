@@ -3,6 +3,7 @@ package jsvm
 import (
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 type Utils struct {
@@ -24,7 +25,12 @@ func (u *Utils) NewDecimal(value interface{}) decimal.Decimal {
 	case float32, float64:
 		return decimal.NewFromFloat(value.(float64))
 	case string:
-		dec, err := decimal.NewFromString(value.(string))
+		s := strings.TrimSpace(value.(string))
+		if len(s) < 1 {
+			return decimal.NewFromInt(0)
+		}
+
+		dec, err := decimal.NewFromString(s)
 		if err != nil {
 			logrus.Panicf("%#v 无法转换为decimal.Decimal类型：%s", value, err.Error())
 		}
