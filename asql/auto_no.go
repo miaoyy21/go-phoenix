@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func AutoNo(tx *sql.Tx, code string, values map[string]string) (string, error) {
+func AutoNo(tx *sql.Tx, code string, num int, values map[string]string) (string, error) {
 
 	query := `
 			SELECT sys_auto_no_item.kind_id_, sys_auto_no_item.code_, sys_auto_no_item.value_
@@ -53,6 +53,7 @@ func AutoNo(tx *sql.Tx, code string, values map[string]string) (string, error) {
 					return "", err
 				}
 
+				index = index + num
 				query := "INSERT INTO sys_auto_no(id, kind_id_, prefix_, value_, create_at_) VALUES (?,?,?,?,?)"
 				args := []interface{}{GenerateId(), kindId, buf.String(), index, GetNow()}
 				if err := Insert(tx, query, args...); err != nil {
@@ -66,7 +67,7 @@ func AutoNo(tx *sql.Tx, code string, values map[string]string) (string, error) {
 					return "", err
 				}
 
-				index++
+				index = index + num
 				query := "UPDATE sys_auto_no SET value_ = ?, update_at_ = ? WHERE kind_id_ = ? AND prefix_ = ?"
 				args := []interface{}{index, GetNow(), kindId, buf.String()}
 				if err := Update(tx, query, args...); err != nil {

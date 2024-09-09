@@ -19,7 +19,17 @@ func NewSql(tx *sql.Tx, ctx *handle.Context) *Sql {
 
 // AutoNo 自动编码
 func (s *Sql) AutoNo(code string, values map[string]string) string {
-	ano, err := asql.AutoNo(s.tx, code, values)
+	ano, err := asql.AutoNo(s.tx, code, 1, values)
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	return ano
+}
+
+// AutoNoN 自动编码
+func (s *Sql) AutoNoN(code string, num int, values map[string]string) string {
+	ano, err := asql.AutoNo(s.tx, code, num, values)
 	if err != nil {
 		logrus.Panic(err)
 	}
