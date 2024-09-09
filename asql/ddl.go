@@ -67,12 +67,3 @@ func (o *DDLBase) Exists() bool {
 
 	return true
 }
-
-func (o *DDLBase) Drop() error {
-	query := fmt.Sprintf("ALTER TABLE %s RENAME TO  %s ;", o.table, fmt.Sprintf("_%s", o.table))
-	if _, err := Exec(o.tx, query); err != nil {
-		return err
-	}
-
-	return nil
-}

@@ -98,3 +98,12 @@ func (o *MySqlDDL) Alter(added, changed, removed map[string]string) error {
 func (o *MySqlDDL) LimitOffset(start, count int) string {
 	return fmt.Sprintf("LIMIT %d,%d", start, count)
 }
+
+func (o *MySqlDDL) Drop() error {
+	query := fmt.Sprintf("ALTER TABLE %s RENAME TO  %s ;", o.table, fmt.Sprintf("_%s", o.table))
+	if _, err := Exec(o.tx, query); err != nil {
+		return err
+	}
+
+	return nil
+}

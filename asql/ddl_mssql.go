@@ -97,3 +97,12 @@ func (o *MsSqlDDL) Alter(added, changed, removed map[string]string) error {
 func (o *MsSqlDDL) LimitOffset(start, count int) string {
 	return fmt.Sprintf("OFFSET %d ROWS FETCH NEXT %d ROWS ONLY", start, count)
 }
+
+func (o *MsSqlDDL) Drop() error {
+	query := fmt.Sprintf("EXEC sp_rename %s,%s ;", o.table, fmt.Sprintf("_%s", o.table))
+	if _, err := Exec(o.tx, query); err != nil {
+		return err
+	}
+
+	return nil
+}
