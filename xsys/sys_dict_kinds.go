@@ -5,15 +5,23 @@ import (
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/handle"
+	"strings"
 )
 
 type SysDictKinds struct {
 }
 
 func (o *SysDictKinds) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	query := "SELECT id, is_sys_, code_, name_, description_, create_at_ FROM sys_dict_kind ORDER BY order_ ASC"
+	scope := ctx.FormValue("scope")
 
-	return asql.Select(tx, query)
+	query, args := "invalid", make([]interface{}, 0)
+	if strings.EqualFold(scope, "USER") {
+		query = "SELECT id, is_sys_, code_, name_, description_, create_at_ FROM sys_dict_kind WHERE is_sys_ = '0' ORDER BY order_ ASC"
+	} else {
+		query = "SELECT id, is_sys_, code_, name_, description_, create_at_ FROM sys_dict_kind ORDER BY order_ ASC"
+	}
+
+	return asql.Select(tx, query, args...)
 }
 
 func (o *SysDictKinds) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
