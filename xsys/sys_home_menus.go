@@ -13,7 +13,7 @@ type SysHomeMenus struct {
 }
 
 func (o *SysHomeMenus) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	query := "SELECT X.id AS id, T.menu_id_ AS menu_id_, X.name_ AS menu_name_, X.menu_ AS menu_, X.icon_ AS menu_icon_ FROM sys_home_menu T INNER JOIN sys_menu X ON X.id = T.menu_id_ WHERE T.user_id_ = ? ORDER BY T.order_ ASC"
+	query := "SELECT T.id AS id, T.menu_id_ AS menu_id_, X.name_ AS menu_name_, X.menu_ AS menu_, X.icon_ AS menu_icon_ FROM sys_home_menu T INNER JOIN sys_menu X ON X.id = T.menu_id_ WHERE T.user_id_ = ? ORDER BY T.order_ ASC"
 
 	return asql.Select(tx, query, ctx.UserId())
 }
