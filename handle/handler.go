@@ -103,11 +103,8 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 				return
 			}
 
-			if !strings.EqualFold(path, "/api/sys/operate_logs") {
-				if strings.EqualFold(path, "/api/sys") && strings.EqualFold(params["method"], "Sync") {
-				} else {
-					op.success(bs)
-				}
+			if _, ok := params["PHOENIX_IGNORE_LOG"]; !ok {
+				op.success(bs)
 			}
 
 			if _, err := w.Write(bs); err != nil {

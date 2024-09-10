@@ -56,7 +56,7 @@ func (op *Operate) refresh() error {
 	if err != nil {
 		return err
 	}
-	op.params = formatBytesWithSize(bsValues)
+	op.values = formatBytesWithSize(bsValues)
 
 	// Using Menu
 	menu, err := op.ctx.UsingMenu()
