@@ -81,8 +81,9 @@ func main() {
 	http.Handle("/api/sys/docs", handle.Handler(db, &xsys.SysDocs{}))                            // 文档
 	http.Handle("/api/sys/time_tasks", handle.Handler(db, &xsys.SysTimeTasks{}))                 // 定时任务
 
-	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{})) // 流程图
-	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))       // 流程执行
+	http.Handle("/api/sys/home_menus", handle.Handler(db, &xsys.SysHomeMenus{})) // 首页常用功能
+	http.Handle("/api/wf/diagrams", handle.Handler(db, &xwf.Diagrams{}))         // 流程图
+	http.Handle("/api/wf/flows", handle.Handler(db, &xwf.Flows{}))               // 流程执行
 
 	//http.Handle("/api/sys/table_foreign_keys", handle.Handler(db, &xsys.SysTableForeignKeys{}))  // 数据库表外键
 	//http.Handle("/api/sys/table_indexes", handle.Handler(db, &xsys.SysTableIndexes{}))           // 数据库表索引
