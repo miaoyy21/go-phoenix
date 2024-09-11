@@ -28,7 +28,7 @@ func (s *Sql) AutoNo(code string, values map[string]string) string {
 }
 
 // AutoNoN 自动编码
-func (s *Sql) AutoNoN(code string, num int, values map[string]string) []string {
+func (s *Sql) AutoNoN(code string, values map[string]string, num int) []string {
 	ano, err := asql.AutoNo(s.tx, code, num, values)
 	if err != nil {
 		logrus.Panic(err)

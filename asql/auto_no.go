@@ -69,7 +69,7 @@ func AutoNo(tx *sql.Tx, code string, num int, values map[string]string) ([]strin
 						return nil, err
 					}
 
-					index = index + num
+					index = index + 1
 					query := "UPDATE sys_auto_no SET value_ = ?, update_at_ = ? WHERE kind_id_ = ? AND prefix_ = ?"
 					args := []interface{}{index, GetNow(), kindId, buf.String()}
 					if err := Update(tx, query, args...); err != nil {
