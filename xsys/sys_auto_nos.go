@@ -17,5 +17,5 @@ func (o *SysAutoNos) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return map[string]string{"status": "success", "no": no}, nil
+	return map[string]string{"status": "success", "no": no[0]}, nil
 }
