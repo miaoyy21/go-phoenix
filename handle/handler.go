@@ -96,18 +96,28 @@ func Handler(db *sql.DB, md interface{}) http.Handler {
 				return
 			}
 
-			bs, err := json.Marshal(result)
-			if err != nil {
-				handlerError(op, w, err)
-				return
-			}
+			if s, ok := result.(string); ok {
+				if _, ok := params["PHOENIX_IGNORE_LOG"]; !ok {
+					op.success([]byte(s))
+				}
 
-			if _, ok := params["PHOENIX_IGNORE_LOG"]; !ok {
-				op.success(bs)
-			}
+				if _, err := w.Write([]byte(s)); err != nil {
+					logrus.Errorf("Response Write Text Failure %s", err.Error())
+				}
+			} else {
+				bs, err := json.Marshal(result)
+				if err != nil {
+					handlerError(op, w, err)
+					return
+				}
 
-			if _, err := w.Write(bs); err != nil {
-				logrus.Errorf("Response Write JSON Failure %s", err.Error())
+				if _, ok := params["PHOENIX_IGNORE_LOG"]; !ok {
+					op.success(bs)
+				}
+
+				if _, err := w.Write(bs); err != nil {
+					logrus.Errorf("Response Write JSON Failure %s", err.Error())
+				}
 			}
 		}
 	})

@@ -55,7 +55,7 @@ func AutoNo(tx *sql.Tx, code string, num int, values map[string]string) ([]strin
 						return nil, err
 					}
 
-					index = index + num
+					index = index + 1
 					query := "INSERT INTO sys_auto_no(id, kind_id_, prefix_, value_, create_at_) VALUES (?,?,?,?,?)"
 					args := []interface{}{GenerateId(), kindId, buf.String(), index, GetNow()}
 					if err := Insert(tx, query, args...); err != nil {
