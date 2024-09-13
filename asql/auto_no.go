@@ -26,6 +26,7 @@ func AutoNo(tx *sql.Tx, kindCode string, num int, values map[string]string) ([]s
 	buf := &bytes.Buffer{}
 	for _, s := range res {
 		kindId, code, value := s["kind_id_"], s["code_"], s["value_"]
+
 		switch code {
 		case "STRING":
 			if len(allNos) > 0 {
@@ -72,9 +73,8 @@ func AutoNo(tx *sql.Tx, kindCode string, num int, values map[string]string) ([]s
 					return nil, err
 				}
 
-				index = index + num
 				query := "INSERT INTO sys_auto_no(id, kind_id_, prefix_, value_, create_at_) VALUES (?,?,?,?,?)"
-				args := []interface{}{GenerateId(), kindId, buf.String(), index, GetNow()}
+				args := []interface{}{GenerateId(), kindId, prefix, index + num, GetNow()}
 				if err := Insert(tx, query, args...); err != nil {
 					return nil, err
 				}
@@ -89,9 +89,8 @@ func AutoNo(tx *sql.Tx, kindCode string, num int, values map[string]string) ([]s
 					return nil, err
 				}
 
-				index = index + num
 				query := "UPDATE sys_auto_no SET value_ = ?, update_at_ = ? WHERE kind_id_ = ? AND prefix_ = ?"
-				args := []interface{}{index, GetNow(), kindId, buf.String()}
+				args := []interface{}{index + num, GetNow(), kindId, prefix}
 				if err := Update(tx, query, args...); err != nil {
 					return nil, err
 				}
