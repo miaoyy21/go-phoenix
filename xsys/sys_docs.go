@@ -36,6 +36,22 @@ func (o *SysDocs) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 func (o *SysDocs) GetDownload(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	docId := ctx.FormValue("id")
 
+	return o.get(tx, ctx, docId)
+}
+
+func (o *SysDocs) GetSigner(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	user := ctx.FormValue("user")
+
+	var docId string
+	if err := asql.SelectRow(tx, "SELECT signer_ FROM sys_user WHERE id = ?", user).Scan(&docId); err != nil {
+		return nil, err
+	}
+
+	return o.get(tx, ctx, docId)
+}
+
+func (o *SysDocs) get(tx *sql.Tx, ctx *handle.Context, docId string) (interface{}, error) {
+
 	var dir, mime string
 
 	if err := asql.SelectRow(tx, "SELECT dir_, mime_ FROM sys_doc WHERE id = ?", docId).Scan(&dir, &mime); err != nil {
