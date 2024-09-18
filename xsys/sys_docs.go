@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
@@ -63,23 +62,42 @@ func (o *SysDocs) GetDownload(tx *sql.Tx, ctx *handle.Context) (interface{}, err
 	return map[string]string{"status": "success"}, nil
 }
 
-// PostImport 文档上传
+// PostImport Excel导入
 func (o *SysDocs) PostImport(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	return o.save(tx, ctx, "import")
+	// 保存Excel导入文件的目录
+	dir := filepath.Join("store", "import", time.Now().Format("0601"))
+
+	return o.save(tx, ctx, dir)
 }
 
 // PostUpload 文档上传
 func (o *SysDocs) PostUpload(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	return o.save(tx, ctx, "upload")
-}
-
-// PostUpload 文档上传
-func (o *SysDocs) save(tx *sql.Tx, ctx *handle.Context, directory string) (interface{}, error) {
-	if err := ctx.ParseMultipartForm(1 << 30); err != nil {
+	// 随机生成2个16进制目录
+	k4 := make([]byte, 2)
+	if _, err := io.ReadFull(base.Config.Rand(), k4); err != nil {
 		return nil, err
 	}
 
-	logrus.Debugf("upload_fullpath is %q", ctx.PostFormValue("upload_fullpath"))
+	// 上传文档目录
+	p1, p2 := hex.EncodeToString(k4[:1]), hex.EncodeToString(k4[1:])
+	dir := filepath.Join("store", "upload", time.Now().Format("0601"), p1, p2)
+
+	return o.save(tx, ctx, dir)
+}
+
+// PostSigner 数字签名
+func (o *SysDocs) PostSigner(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	// 上传签名目录
+	dir := filepath.Join("store", "signer")
+
+	return o.save(tx, ctx, dir)
+}
+
+// PostUpload 文档上传
+func (o *SysDocs) save(tx *sql.Tx, ctx *handle.Context, dir string) (interface{}, error) {
+	if err := ctx.ParseMultipartForm(1 << 30); err != nil {
+		return nil, err
+	}
 
 	rFile, head, err := ctx.FormFile("upload")
 	if err != nil {
@@ -91,17 +109,7 @@ func (o *SysDocs) save(tx *sql.Tx, ctx *handle.Context, directory string) (inter
 	mime := head.Header.Get("Content-Type")
 	size := head.Size
 	name := head.Filename
-	docId := asql.GenerateId()
 
-	// 随机生成2个16进制目录
-	k4 := make([]byte, 2)
-	if _, err := io.ReadFull(base.Config.Rand(), k4); err != nil {
-		return nil, err
-	}
-
-	// 创建目录
-	p1, p2 := hex.EncodeToString(k4[:1]), hex.EncodeToString(k4[1:])
-	dir := filepath.Join("store", directory, time.Now().Format("0601"), p1, p2)
 	if _, err := os.Stat(dir); err != nil {
 		if !os.IsNotExist(err) {
 			return nil, err
@@ -113,6 +121,7 @@ func (o *SysDocs) save(tx *sql.Tx, ctx *handle.Context, directory string) (inter
 	}
 
 	// 创建文件
+	docId := asql.GenerateId()
 	wFile, err := os.Create(filepath.Join(dir, docId))
 	if err != nil {
 		return nil, err

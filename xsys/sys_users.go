@@ -33,7 +33,8 @@ func (o *SysUsers) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				sys_user.depart_id_, sys_depart.name_ AS depart_name_, 
 				sys_user.sex_, sys_user.is_depart_leader_, sys_user.valid_, 
 				sys_user.classification_, sys_user.telephone_, sys_user.email_, 
-				sys_user.birth_, sys_user.description_, sys_user.create_at_, sys_user.login_at_
+				sys_user.birth_, sys_user.description_, sys_user.signer_ AS signer_, 
+				sys_user.create_at_, sys_user.login_at_
 			FROM sys_user 
 				LEFT JOIN sys_depart ON sys_user.depart_id_ = sys_depart.id
 			WHERE sys_user.depart_id_ = ?
@@ -61,6 +62,7 @@ func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	email := ctx.PostFormValue("email_")
 	birth := ctx.PostFormValue("birth_")
 	description := ctx.PostFormValue("description_")
+	signer := ctx.PostFormValue("signer_")
 
 	moveId := ctx.PostFormValue("webix_move_id")
 	moveIndex := ctx.PostFormValue("webix_move_index")
@@ -81,18 +83,16 @@ func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 
 		query := `
 		INSERT INTO sys_user(id, user_code_, user_name_, 
-			account_id_, password_, 
-			depart_id_, sex_, is_depart_leader_, valid_, 
-			classification_, telephone_, email_, 
-			birth_, description_, order_, create_at_
-		) VALUES (?,?,?, ?,?, ?,?,?,?, ?,?,?, ?,?,?,?)
+			account_id_, password_, depart_id_, sex_, is_depart_leader_, 
+			valid_, classification_, telephone_, email_, 
+			birth_, description_, signer_, order_, create_at_
+		) VALUES (?,?,?, ?,?,?,?,?, ?,?,?,?, ?,?,?,?,?)
 		`
 		args := []interface{}{
 			newId, userCode, userName,
-			accountId, ePwd,
-			departId, sex, isDepartLeader, valid,
-			classification, telephone, email,
-			birth, description, asql.GenerateOrderId(), now,
+			accountId, ePwd, departId, sex, isDepartLeader,
+			valid, classification, telephone, email,
+			birth, description, signer, asql.GenerateOrderId(), now,
 		}
 		if err := asql.Insert(tx, query, args...); err != nil {
 			return nil, err
@@ -105,14 +105,14 @@ func (o *SysUsers) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		SET user_code_ = ?, user_name_ = ?, account_id_ = ?, 
 			depart_id_ = ?, sex_ = ?, is_depart_leader_ = ?, valid_ = ?, 
 			classification_ = ?, telephone_ = ?, email_ = ?, 
-			birth_ = ?, description_ = ?, update_at_ = ? 
+			birth_ = ?, description_ = ?, signer_ = ?, update_at_ = ? 
 		WHERE id = ?
 		`
 		args := []interface{}{
 			userCode, userName, accountId,
 			departId, sex, isDepartLeader, valid,
 			classification, telephone, email,
-			birth, description, now,
+			birth, description, signer, now,
 			id,
 		}
 		if err := asql.Update(tx, query, args...); err != nil {
