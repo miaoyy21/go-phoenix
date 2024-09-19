@@ -1,6 +1,9 @@
 package cache
 
-import "sync"
+import (
+	"github.com/sirupsen/logrus"
+	"sync"
+)
 
 // DataService 数据服务缓存
 var DataService = cacheDataService{
@@ -31,6 +34,7 @@ func (cache *cacheDataService) Set(table string, service string, data *DataDataS
 
 	mapDataService[service] = data
 	cache.dataService[table] = mapDataService
+	logrus.Infof("更新缓存用户的数据服务【%s.%s】...", table, service)
 }
 
 func (cache *cacheDataService) Get(table string, service string) (*DataDataService, bool) {
@@ -43,6 +47,8 @@ func (cache *cacheDataService) Get(table string, service string) (*DataDataServi
 	}
 
 	data, ok := mapDataService[service]
+	logrus.Infof("通过缓存读取数据服务【%s.%s】>>>", table, service)
+
 	return data, ok
 }
 
@@ -56,6 +62,7 @@ func (cache *cacheDataService) Delete(table string, service string) {
 	}
 
 	delete(mapDataService, service)
+	logrus.Infof("删除缓存用户的数据服务【%s.%s】...", table, service)
 }
 
 func (cache *cacheDataService) DeleteByTable(table string) {
@@ -63,4 +70,5 @@ func (cache *cacheDataService) DeleteByTable(table string) {
 	defer cache.rwMutex.Unlock()
 
 	delete(cache.dataService, table)
+	logrus.Infof("删除缓存用户的数据服务【%s】...", table)
 }
