@@ -3,9 +3,12 @@ package xsys
 import (
 	"database/sql"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
+	"go-phoenix/cache"
 	"go-phoenix/handle"
 	"go-phoenix/rujs"
+	"strconv"
 	"strings"
 )
 
@@ -23,13 +26,22 @@ func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 
 	var method, source string
 	var timeout int
-	query := `SELECT method_, source_, timeout_ FROM sys_data_service, sys_table WHERE sys_data_service.table_id_ = sys_table.id AND sys_table.code_ = ? AND sys_data_service.code_ = ?`
-	if err := asql.SelectRow(tx, query, sTable, sCode).Scan(&method, &source, &timeout); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("数据服务 %q 不存在", service)
+	data, ok := cache.DataService.Get(sTable, sCode)
+	if ok {
+		method, source, timeout = data.Method, data.Source, data.Timeout
+		logrus.Infof("从缓存读取数据服务【%s.%s】>>>", sTable, sCode)
+	} else {
+		query := `SELECT method_, source_, timeout_ FROM sys_data_service, sys_table WHERE sys_data_service.table_id_ = sys_table.id AND sys_table.code_ = ? AND sys_data_service.code_ = ?`
+		if err := asql.SelectRow(tx, query, sTable, sCode).Scan(&method, &source, &timeout); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, fmt.Errorf("数据服务 %q 不存在", service)
+			}
+
+			return nil, err
 		}
 
-		return nil, err
+		cache.DataService.Set(sTable, sCode, &cache.DataDataService{Method: method, Source: source, Timeout: timeout})
+		logrus.Infof("缓存用户的数据服务【%s.%s】...", sTable, sCode)
 	}
 
 	if !strings.EqualFold(method, ctx.Method) {
@@ -84,6 +96,19 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 
 		return map[string]interface{}{"status": "success", "newid": newId, "create_at_": now}, nil
 	case "update":
+		var table string
+		if err := asql.SelectRow(tx, "SELECT code_ FROM sys_table WHERE id = ?", tableId).Scan(&table); err != nil {
+			return nil, err
+		}
+
+		iTimeout, err := strconv.Atoi(timeout)
+		if err != nil {
+			return nil, err
+		}
+
+		// 更新数据服务缓存
+		cache.DataService.Set(table, code, &cache.DataDataService{Method: method, Source: source, Timeout: iTimeout})
+
 		query := "UPDATE sys_data_service SET code_ = ?, name_ = ?, method_ = ?, timeout_ = ?, source_ = ?, update_at_ = ? WHERE id = ?"
 		args := []interface{}{code, name, method, timeout, source, now, id}
 		if err := asql.Update(tx, query, args...); err != nil {
@@ -92,6 +117,14 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 
 		return map[string]interface{}{"status": "success", "id": id, "update_at_": now}, nil
 	case "delete":
+		var table string
+		if err := asql.SelectRow(tx, "SELECT code_ FROM sys_table WHERE id = ?", tableId).Scan(&table); err != nil {
+			return nil, err
+		}
+
+		// 从数据服务缓存中删除
+		cache.DataService.Delete(table, code)
+
 		if err := asql.Delete(tx, "DELETE FROM sys_data_service WHERE id = ?", id); err != nil {
 			return nil, err
 		}

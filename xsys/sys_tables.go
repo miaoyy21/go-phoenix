@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-phoenix/asql"
 	"go-phoenix/base"
+	"go-phoenix/cache"
 	"go-phoenix/handle"
 	"strings"
 	"time"
@@ -103,6 +104,9 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				return nil, err
 			}
 		}
+
+		// 更新数据服务缓存
+		cache.DataService.DeleteByTable(table)
 
 		return map[string]interface{}{"status": "success"}, nil
 	case "order":
