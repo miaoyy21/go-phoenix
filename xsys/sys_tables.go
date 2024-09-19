@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/cache"
@@ -107,6 +108,7 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 
 		// 更新数据服务缓存
 		cache.DataService.DeleteByTable(table)
+		logrus.Infof("删除缓存用户的数据服务【%s】...", table)
 
 		return map[string]interface{}{"status": "success"}, nil
 	case "order":

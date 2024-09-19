@@ -29,7 +29,7 @@ func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 	data, ok := cache.DataService.Get(sTable, sCode)
 	if ok {
 		method, source, timeout = data.Method, data.Source, data.Timeout
-		logrus.Infof("从缓存读取数据服务【%s.%s】>>>", sTable, sCode)
+		logrus.Infof("通过缓存读取数据服务【%s.%s】>>>", sTable, sCode)
 	} else {
 		query := `SELECT method_, source_, timeout_ FROM sys_data_service, sys_table WHERE sys_data_service.table_id_ = sys_table.id AND sys_table.code_ = ? AND sys_data_service.code_ = ?`
 		if err := asql.SelectRow(tx, query, sTable, sCode).Scan(&method, &source, &timeout); err != nil {
@@ -41,7 +41,7 @@ func (o *SysDataService) Any(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		}
 
 		cache.DataService.Set(sTable, sCode, &cache.DataDataService{Method: method, Source: source, Timeout: timeout})
-		logrus.Infof("缓存用户的数据服务【%s.%s】...", sTable, sCode)
+		logrus.Infof("添加缓存用户的数据服务【%s.%s】...", sTable, sCode)
 	}
 
 	if !strings.EqualFold(method, ctx.Method) {
@@ -101,6 +101,12 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 			return nil, err
 		}
 
+		query := "UPDATE sys_data_service SET code_ = ?, name_ = ?, method_ = ?, timeout_ = ?, source_ = ?, update_at_ = ? WHERE id = ?"
+		args := []interface{}{code, name, method, timeout, source, now, id}
+		if err := asql.Update(tx, query, args...); err != nil {
+			return nil, err
+		}
+
 		iTimeout, err := strconv.Atoi(timeout)
 		if err != nil {
 			return nil, err
@@ -108,12 +114,7 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 
 		// 更新数据服务缓存
 		cache.DataService.Set(table, code, &cache.DataDataService{Method: method, Source: source, Timeout: iTimeout})
-
-		query := "UPDATE sys_data_service SET code_ = ?, name_ = ?, method_ = ?, timeout_ = ?, source_ = ?, update_at_ = ? WHERE id = ?"
-		args := []interface{}{code, name, method, timeout, source, now, id}
-		if err := asql.Update(tx, query, args...); err != nil {
-			return nil, err
-		}
+		logrus.Infof("更新缓存用户的数据服务【%s.%s】...", table, code)
 
 		return map[string]interface{}{"status": "success", "id": id, "update_at_": now}, nil
 	case "delete":
@@ -124,6 +125,7 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 
 		// 从数据服务缓存中删除
 		cache.DataService.Delete(table, code)
+		logrus.Infof("删除缓存用户的数据服务【%s.%s】...", table, code)
 
 		if err := asql.Delete(tx, "DELETE FROM sys_data_service WHERE id = ?", id); err != nil {
 			return nil, err
