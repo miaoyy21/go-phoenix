@@ -115,7 +115,7 @@ func (o *SysDataService) PostByTableId(tx *sql.Tx, ctx *handle.Context) (interfa
 		return map[string]interface{}{"status": "success", "id": id, "update_at_": now}, nil
 	case "delete":
 		var table string
-		if err := asql.SelectRow(tx, "SELECT code_ FROM sys_table WHERE id = ?", tableId).Scan(&table); err != nil {
+		if err := asql.SelectRow(tx, "SELECT sys_table.code_ FROM sys_table, sys_data_service WHERE sys_table.id = sys_data_service.table_id_ AND sys_data_service.id = ?", id).Scan(&table); err != nil {
 			return nil, err
 		}
 
