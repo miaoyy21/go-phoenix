@@ -63,7 +63,7 @@ func (o *Flows) PostExecuteReject(tx *sql.Tx, ctx *handle.Context) (interface{},
 	}
 
 	// 流程提示信息
-	statusText := fmt.Sprintf("[%s]%s 已驳回", node.Name(), ctx.UserName())
+	statusText := fmt.Sprintf("【%s】%s 已驳回", node.Name(), ctx.UserName())
 
 	// 更新流程状态
 	queryUpdate := "UPDATE wf_flow SET activated_keys_ = ?, active_at_ = ?, status_ = ?, status_text_ = ? WHERE id = ?"
