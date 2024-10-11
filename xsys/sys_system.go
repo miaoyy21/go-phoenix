@@ -9,7 +9,6 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"go-phoenix/handle"
 	"net"
-	"strings"
 	"time"
 )
 
@@ -56,11 +55,11 @@ func (o *SysSystem) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	// CPU
 	iStates, err := cpu.Info()
 	if err != nil {
-		buf.WriteString("CPU States :  --\n")
+		buf.WriteString("CPU Information :  --\n")
 	} else {
-		buf.WriteString("CPU States :\n")
-		for index, iState := range iStates {
-			buf.WriteString(fmt.Sprintf("\tCPU %d :  %s %d Cores\n", index+1, iState.ModelName, iState.Cores))
+		buf.WriteString("CPU Information :\n")
+		for _, iState := range iStates {
+			buf.WriteString(fmt.Sprintf("\t%s %d Cores\n", iState.ModelName, iState.Cores))
 		}
 	}
 
@@ -69,15 +68,16 @@ func (o *SysSystem) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	if err != nil {
 		buf.WriteString("CPU Percents :  --\n")
 	} else {
-		percents := make([]string, 0, len(cpuPercents))
 		var total float64
 		for _, cpuPercent := range cpuPercents {
 			total = total + cpuPercent
-			percents = append(percents, fmt.Sprintf("%.2f%%", cpuPercent))
 		}
 
 		buf.WriteString(fmt.Sprintf("CPU Average Percent :  %.2f%%\n", total/float64(len(cpuPercents))))
-		buf.WriteString(fmt.Sprintf("CPU Percents :  %s\n", strings.Join(percents, ", ")))
+		buf.WriteString(fmt.Sprintf("CPU Percents :  \n"))
+		for index, cpuPercent := range cpuPercents {
+			buf.WriteString(fmt.Sprintf("\tCPU %d :  %.2f%%\n", index+1, cpuPercent))
+		}
 	}
 	buf.WriteByte('\n')
 
