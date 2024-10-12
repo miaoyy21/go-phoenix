@@ -105,11 +105,12 @@ func InitConfig(dir string) error {
 	Config.aesBlock = aesBlock
 
 	logrus.SetLevel(level)
-	logrus.Infof("Aes key is %q", Config.AesKey)
-	logrus.Infof("Aes Iv is %q", Config.AesIv)
-	logrus.Infof("Work Dir is %q", Config.dir)
-	logrus.Infof("Log Level is %q", Config.Level)
-	logrus.Infof("DB Driver is %q", Config.DBDriver)
+	logrus.Infof("AES加密 Key: %q", Config.AesKey)
+	logrus.Infof("AES加密 IV: %q", Config.AesIv)
+	logrus.Infof("日志级别: %q", Config.Level)
+	logrus.Infof("工作目录: %q", Config.dir)
+	logrus.Infof("数据库驱动类型: %q", Config.DBDriver)
+	logrus.Infof("数据库数据源: %q", Config.DBDataSource)
 
 	seed := time.Now().UnixNano()
 	Config.rand = rand.New(rand.NewSource(seed))

@@ -55,7 +55,7 @@ func main() {
 		logrus.Fatalf("db.Ping() Failure :: %s", err.Error())
 	}
 
-	logrus.Info("Connect DDLBase Successful ...")
+	logrus.Info("连接数据库成功 ...")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
@@ -90,7 +90,7 @@ func main() {
 	//http.Handle("/api/sys/ui_widget", handle.Handler(db, &xsys.SysUIWidget{}))                   // UI组件设计
 
 	addr := net.JoinHostPort(base.Config.Host, base.Config.Port)
-	logrus.Infof("Start Listen %s ......", addr)
+	logrus.Infof("HTTP服务器监听地址: %s ......", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		logrus.Errorf("Listen Failure %s", err.Error())
 	}
