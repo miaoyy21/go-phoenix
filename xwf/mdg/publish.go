@@ -60,7 +60,8 @@ func Publish(tx *sql.Tx, id, code, name string, smo string, order int64, model M
 
 		// 是否设置执行者
 		if node.Category == enum.CategoryExecute && node.ExecutorPolicy == enum.ExecutorPolicyNone &&
-			len(node.ExecutorDeparts)+len(node.ExecutorUsers)+len(node.ExecutorRoles) == 0 {
+			len(node.ExecutorDeparts)+len(node.ExecutorUsers)+len(node.ExecutorRoles) == 0 &&
+			len(strings.TrimSpace(node.ExecutorScript)) < 4 {
 			return fmt.Errorf("执行环节【%s】没有完成执行者设置", names[node.Key])
 		}
 

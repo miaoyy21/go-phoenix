@@ -18,6 +18,7 @@ func (o *Flows) PostStartBackwards(tx *sql.Tx, ctx *handle.Context) (interface{}
 	if err := asql.SelectRow(tx, "SELECT diagram_id_, values_, status_ FROM wf_flow WHERE id = ?", id).Scan(&diagramId, &values, &status); err != nil {
 		return nil, err
 	}
+
 	// 只能启动 草稿、撤回和驳回的流程
 	if status != enum.FlowStatusRevoked && status != enum.FlowStatusDraft && status != enum.FlowStatusRejected {
 		return nil, fmt.Errorf("流程实例已启动，当前状态为%q", status)
