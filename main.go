@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"github.com/antonfisher/nested-logrus-formatter"
 	//_ "dm"                               // 达梦 驱动
 	_ "github.com/denisenkom/go-mssqldb" // SQL Server 驱动
 	//_ "github.com/go-sql-driver/mysql"   // MySQL 驱动
@@ -20,19 +21,7 @@ func main() {
 	logrus.SetLevel(logrus.TraceLevel)
 
 	// 设置日志输出样式
-	logrus.SetFormatter(
-		&logrus.TextFormatter{EnvironmentOverrideColors: true,
-			FullTimestamp:   true,
-			PadLevelText:    true,
-			TimestampFormat: "2006-01-02 15:04:05.000",
-			//CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
-			//	loc := strings.TrimPrefix(frame.File, base.Config.Dir()+string(os.PathSeparator))
-			//
-			//	return fmt.Sprintf("%s:%d ", loc, frame.Line), ""
-			//},
-		},
-	)
-	logrus.SetReportCaller(false)
+	logrus.SetFormatter(&formatter.Formatter{TimestampFormat: "2006-01-02 15:04:05", HideKeys: true})
 
 	// 获取当前目录
 	dir, err := os.Getwd()

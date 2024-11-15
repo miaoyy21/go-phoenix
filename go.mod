@@ -3,6 +3,7 @@ module go-phoenix
 go 1.20
 
 require (
+	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/google/uuid v1.3.0
 	github.com/robertkrimen/otto v0.2.1
