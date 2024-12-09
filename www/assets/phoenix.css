@@ -80,3 +80,15 @@ span.webix_input_icon.webix_clear_icon.webix_icon_transparent.wxi-close {
 .webix_winmenu .webix_scroll_cont {
     position: static;
 }
+
+.webix_window {
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px 0px rgba(64,64,64,0.8);
+    -webkit-box-shadow: 0px 4px 6px 0px rgba(64,64,64,0.8);
+    -moz-box-shadow: 0px 4px 6px 0px rgba(64,64,64,0.8);
+}
+
+.datatable-qrcode > svg {
+    vertical-align:middle;
+    height:36px
+}
