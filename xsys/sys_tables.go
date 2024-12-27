@@ -98,7 +98,7 @@ func (o *SysTables) Post(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		}
 
 		// 把数据库表名改掉（不实际删除）
-		ddl := asql.NewDDL(tx, table, nil, nil) // 数据定义语法
+		ddl := asql.NewDDLTable(tx, table) // 数据定义语法
 		if ddl.Exists() {
 			if err := ddl.Drop(); err != nil {
 				return nil, err
@@ -140,7 +140,7 @@ func (o *SysTables) PostSync(tx *sql.Tx, ctx *handle.Context) (interface{}, erro
 		return nil, errors.New("empty table columns")
 	}
 
-	ddl := asql.NewDDL(tx, table, cols, present) // 数据定义语法
+	ddl := asql.NewDDLTableCol(tx, table, cols, present) // 数据定义语法
 	if !ddl.Exists() {
 
 		// 执行创建数据库表

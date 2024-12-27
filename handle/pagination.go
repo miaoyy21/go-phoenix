@@ -75,7 +75,7 @@ func (p *Pagination) SetData(tx *sql.Tx, query string, args ...interface{}) erro
 		return err
 	}
 
-	ddl := asql.NewDDL(tx, "*", nil, nil)
+	ddl := asql.NewDDL(tx)
 	newQuery := fmt.Sprintf(" %sORDER BY %s \n\t\t%s ", query, strings.Join(p.sorts, ","), ddl.LimitOffset(p.start, p.count))
 	if len(p.filters) > 0 {
 		newQuery = fmt.Sprintf("SELECT * FROM (%s) _PHOENIX_ WHERE %s ORDER BY %s \n\t\t %s ", query, strings.Join(p.filters, " AND "), strings.Join(p.sorts, ","), ddl.LimitOffset(p.start, p.count))

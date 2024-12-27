@@ -19,8 +19,7 @@ type DDL interface {
 	LimitOffset(int, int) string // 分页语法
 }
 
-func NewDDL(tx *sql.Tx, table string, cols []string, present map[string]string) DDL {
-	ddl := NewDDLBase(tx, table, cols, present)
+func newDDL(ddl *DDLBase) DDL {
 
 	switch base.Config.DBDriver {
 	case "mysql":
@@ -34,6 +33,18 @@ func NewDDL(tx *sql.Tx, table string, cols []string, present map[string]string) 
 	}
 
 	return nil
+}
+
+func NewDDL(tx *sql.Tx) DDL {
+	return newDDL(NewDDLBase(tx, "*", nil, nil))
+}
+
+func NewDDLTable(tx *sql.Tx, table string) DDL {
+	return newDDL(NewDDLBase(tx, table, nil, nil))
+}
+
+func NewDDLTableCol(tx *sql.Tx, table string, cols []string, present map[string]string) DDL {
+	return newDDL(NewDDLBase(tx, table, cols, present))
 }
 
 type DDLBase struct {

@@ -158,7 +158,7 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	}
 
 	// 是否为仅获取数据列
-	ddl := asql.NewDDL(s.tx, "*", nil, nil)
+	ddl := asql.NewDDL(s.tx)
 	if _, ok := params["is_parse_columns"]; ok {
 		query := fmt.Sprintf("\n\tSELECT %s \n\t%s \n\t%s \n", fields, strings.Join(sqs, "\n\t"), ddl.LimitOffset(0, 1))
 		columns, err := s.ParseColumnConfigs(query)
