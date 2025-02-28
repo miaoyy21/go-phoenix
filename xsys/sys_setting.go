@@ -11,7 +11,7 @@ type SysSetting struct {
 }
 
 func (m *SysSetting) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	res, err := asql.Select(tx, "SELECT field_, value_ FROM sys_setting WHERE field_ <> 'password_default'")
+	res, err := asql.Select(tx, "SELECT field_, value_ FROM sys_setting")
 	if err != nil {
 		return nil, err
 	}
