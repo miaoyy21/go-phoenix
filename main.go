@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/antonfisher/nested-logrus-formatter"
+	"log"
+
 	//_ "dm"                               // 达梦 驱动
 	_ "github.com/denisenkom/go-mssqldb" // SQL Server 驱动
 	//_ "github.com/go-sql-driver/mysql"   // MySQL 驱动
@@ -51,7 +53,7 @@ func main() {
 		logrus.Fatalf("runScripts() Failure :: %s", err.Error())
 	}
 	logrus.Info("执行更新脚本成功 ...")
-	logrus.Infof("当前软件版本为 %s >>>>>>", "2025.02.21")
+	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.02.28")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
