@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -60,6 +61,13 @@ func (o *SysDocs) get(tx *sql.Tx, ctx *handle.Context, docId string) (interface{
 		}
 
 		return nil, err
+	}
+
+	// 根据操作系统类型，进行文件路径分割符进行替换
+	if strings.EqualFold(runtime.GOOS, "windows") {
+		dir = strings.ReplaceAll(dir, "/", "\\")
+	} else {
+		dir = strings.ReplaceAll(dir, "\\", "/")
 	}
 
 	// 获取文件
