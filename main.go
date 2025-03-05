@@ -53,7 +53,7 @@ func main() {
 		logrus.Fatalf("runScripts() Failure :: %s", err.Error())
 	}
 	logrus.Info("执行更新脚本成功 ...")
-	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.03.04")
+	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.03.05")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
