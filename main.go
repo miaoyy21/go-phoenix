@@ -53,9 +53,7 @@ func main() {
 		logrus.Fatalf("runScripts() Failure :: %s", err.Error())
 	}
 	logrus.Info("执行更新脚本成功 ...")
-	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.03.05")
-
-	//http.Handle("/", http.FileServer(http.Dir("/Users/miaojingyi/Public")))
+	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.04.16")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
@@ -97,8 +95,28 @@ func main() {
 }
 
 func runScripts(db *sql.DB) error {
-	if _, err := db.Exec("update sys_menu set name_ = '产品入帐结算单' where menu_ = 'dev_jzwz_print_rkd'"); err != nil {
-		return fmt.Errorf("执行更新脚本 出现错误：%s\n", err.Error())
+	if _, err := db.Exec("update JZMD_WZDM set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
+		return fmt.Errorf("执行更新脚本1 出现错误：%s\n", err.Error())
+	}
+
+	if _, err := db.Exec("update JZWZ_WZRKDWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
+		return fmt.Errorf("执行更新脚本2 出现错误：%s\n", err.Error())
+	}
+
+	if _, err := db.Exec("update JZWZ_WZHCDWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
+		return fmt.Errorf("执行更新脚本3 出现错误：%s\n", err.Error())
+	}
+
+	if _, err := db.Exec("update JZWZ_WZLLSQWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
+		return fmt.Errorf("执行更新脚本4 出现错误：%s\n", err.Error())
+	}
+
+	if _, err := db.Exec("ALTER TABLE JZWZ_WZRKDWJ ALTER COLUMN htbh varchar(256)"); err != nil {
+		return fmt.Errorf("执行更新脚本5 出现错误：%s\n", err.Error())
+	}
+
+	if _, err := db.Exec("UPDATE sys_table_column SET type_ = 'VARCHAR(256)' WHERE id = 'dv9xszd2wmk2g9bm9xut2vw7sdgnhvkv'"); err != nil {
+		return fmt.Errorf("执行更新脚本6 出现错误：%s\n", err.Error())
 	}
 
 	return nil
