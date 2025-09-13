@@ -10,6 +10,7 @@ import (
 	"log"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	//_ "dm"                               // 达梦 驱动
 	_ "github.com/denisenkom/go-mssqldb" // SQL Server 驱动
@@ -114,35 +115,35 @@ func runScripts(db *sql.DB, dir string) error {
 		return err
 	}); err != nil {
 		if os.IsNotExist(err) {
-			logrus.Infof("未找到脚本目录%q\n", "scripts")
+			logrus.Infof("脚本目录%q不存在 >>>>>>", root)
 			return nil
 		}
 
-		return fmt.Errorf("遍历脚本目录%q出现异常: %s", filepath.Join(dir, "scri1pts"), err.Error())
+		return fmt.Errorf("遍历脚本目录%q出现异常: %s", root, err.Error())
 	}
 
 	sort.Strings(scripts)
-	for _, script := range scripts {
+	for i, script := range scripts {
 		buf := new(bytes.Buffer)
 
 		f, err := os.Open(script)
 		if err != nil {
-			return fmt.Errorf("读取脚本文件%q出现异常: %s", script, err.Error())
+			return fmt.Errorf("读取脚本文件%q出现异常: %s", strings.ReplaceAll(script, root, ""), err.Error())
 		}
 
 		if _, err := io.Copy(buf, f); err != nil {
-			return fmt.Errorf("读取脚本文件%q出现异常: %s", script, err.Error())
+			return fmt.Errorf("读取脚本文件%q出现异常: %s", strings.ReplaceAll(script, root, ""), err.Error())
 		}
 
 		if _, err := db.Exec(buf.String()); err != nil {
-			return fmt.Errorf("执行脚本文件%q出现异常: %s", script, err.Error())
+			return fmt.Errorf("执行脚本文件%q出现异常: %s", strings.ReplaceAll(script, root, ""), err.Error())
 		}
 
 		if err := f.Close(); err != nil {
 			return err
 		}
-	}
 
-	logrus.Info("执行更新脚本成功 ...")
+		logrus.Infof("【%d】加载脚本文件%q ...", i+1, strings.ReplaceAll(script, root, ""))
+	}
 	return nil
 }
