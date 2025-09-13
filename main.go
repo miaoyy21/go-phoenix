@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"github.com/antonfisher/nested-logrus-formatter"
+	"io"
+	"io/fs"
 	"log"
+	"path/filepath"
+	"sort"
 
 	//_ "dm"                               // 达梦 驱动
 	_ "github.com/denisenkom/go-mssqldb" // SQL Server 驱动
@@ -49,10 +54,9 @@ func main() {
 	logrus.Info("连接数据库成功 ...")
 
 	// 执行更新SQL脚本
-	if err := runScripts(db); err != nil {
+	if err := runScripts(db, dir); err != nil {
 		logrus.Fatalf("runScripts() Failure :: %s", err.Error())
 	}
-	logrus.Info("执行更新脚本成功 ...")
 	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.04.16")
 
 	// 静态文件
@@ -94,30 +98,51 @@ func main() {
 	}
 }
 
-func runScripts(db *sql.DB) error {
-	if _, err := db.Exec("update JZMD_WZDM set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
-		return fmt.Errorf("执行更新脚本1 出现错误：%s\n", err.Error())
+func runScripts(db *sql.DB, dir string) error {
+	root, scripts := filepath.Join(dir, "scripts"), make([]string, 0)
+	if err := filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		scripts = append(scripts, path)
+
+		return err
+	}); err != nil {
+		if os.IsNotExist(err) {
+			logrus.Infof("未找到脚本目录%q\n", "scripts")
+			return nil
+		}
+
+		return fmt.Errorf("遍历脚本目录%q出现异常: %s", filepath.Join(dir, "scri1pts"), err.Error())
 	}
 
-	if _, err := db.Exec("update JZWZ_WZRKDWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
-		return fmt.Errorf("执行更新脚本2 出现错误：%s\n", err.Error())
+	sort.Strings(scripts)
+	for _, script := range scripts {
+		buf := new(bytes.Buffer)
+
+		f, err := os.Open(script)
+		if err != nil {
+			return fmt.Errorf("读取脚本文件%q出现异常: %s", script, err.Error())
+		}
+
+		if _, err := io.Copy(buf, f); err != nil {
+			return fmt.Errorf("读取脚本文件%q出现异常: %s", script, err.Error())
+		}
+
+		if _, err := db.Exec(buf.String()); err != nil {
+			return fmt.Errorf("执行脚本文件%q出现异常: %s", script, err.Error())
+		}
+
+		if err := f.Close(); err != nil {
+			return err
+		}
 	}
 
-	if _, err := db.Exec("update JZWZ_WZHCDWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
-		return fmt.Errorf("执行更新脚本3 出现错误：%s\n", err.Error())
-	}
-
-	if _, err := db.Exec("update JZWZ_WZLLSQWJMX set jldw = '个' where wzbh in ('B01987','B01981','B01983','B01984','B01986','B01982','B01985') and jldw in ('2','4','8','10','20')"); err != nil {
-		return fmt.Errorf("执行更新脚本4 出现错误：%s\n", err.Error())
-	}
-
-	if _, err := db.Exec("ALTER TABLE JZWZ_WZRKDWJ ALTER COLUMN htbh varchar(256)"); err != nil {
-		return fmt.Errorf("执行更新脚本5 出现错误：%s\n", err.Error())
-	}
-
-	if _, err := db.Exec("UPDATE sys_table_column SET type_ = 'VARCHAR(256)' WHERE id = 'dv9xszd2wmk2g9bm9xut2vw7sdgnhvkv'"); err != nil {
-		return fmt.Errorf("执行更新脚本6 出现错误：%s\n", err.Error())
-	}
-
+	logrus.Info("执行更新脚本成功 ...")
 	return nil
 }

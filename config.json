@@ -1,6 +1,6 @@
 {
   "level": "trace",
-  "host": "0.0.0.0",
+  "host": "127.0.0.1",
   "port": "8080",
   "aesKey": "fbe666591f898dae5b7b2110b27b0e00",
   "aesIv": "3738f85acef6060516668bec263c94aa",
