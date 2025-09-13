@@ -54,9 +54,9 @@ func main() {
 	}
 	logrus.Info("连接数据库成功 ...")
 
-	// 执行更新SQL脚本
-	if err := runScripts(db, dir); err != nil {
-		logrus.Fatalf("runScripts() Failure :: %s", err.Error())
+	// 加载SQL脚本
+	if err := loadScripts(db, dir); err != nil {
+		logrus.Fatalf("loadScripts() Failure :: %s", err.Error())
 	}
 	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.04.16")
 
@@ -99,7 +99,7 @@ func main() {
 	}
 }
 
-func runScripts(db *sql.DB, dir string) error {
+func loadScripts(db *sql.DB, dir string) error {
 	root, scripts := filepath.Join(dir, "scripts"), make([]string, 0)
 	if err := filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
