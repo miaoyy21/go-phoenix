@@ -44,7 +44,7 @@ func TestLoadStock(t *testing.T) {
 		}
 
 		// Output Progress
-		if i%100 == 0 {
+		if i%200 == 0 {
 			t.Logf("正在更新中 (%d/%d %5.2f%%) ...", i, len(matches), float64(i+1)*100/float64(len(matches)))
 		}
 	}
