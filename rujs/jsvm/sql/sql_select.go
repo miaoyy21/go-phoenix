@@ -18,6 +18,12 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	for _, arg := range args {
 		arg := strings.ToLower(strings.TrimSpace(arg))
 		if strings.HasPrefix(arg, "select ") {
+			//aFields := strings.TrimSpace(strings.TrimPrefix(arg, "select "))
+			//if strings.HasPrefix(aFields, "top") {
+			//	fields = strings.Join(strings.Split(aFields, " ")[2:], " ")
+			//} else {
+			//	fields = aFields
+			//}
 			fields = strings.TrimSpace(strings.TrimPrefix(arg, "select "))
 		} else if strings.HasPrefix(arg, "from ") {
 			from = strings.TrimSpace(strings.TrimPrefix(arg, "from "))
@@ -43,6 +49,10 @@ func (s *Sql) Select(args ...string) map[string]interface{} {
 	mapFields := make(map[string]string)
 	sFields := strings.Split(fields, ",")
 	for _, field := range sFields {
+		if strings.HasPrefix(field, "top") {
+			field = strings.Join(strings.Split(field, " ")[2:], " ")
+		}
+
 		ls := strings.Split(strings.TrimSpace(field), " ")
 		if len(ls) == 2 {
 			ls1, ls0 := strings.TrimSpace(ls[1]), strings.TrimSpace(ls[0])

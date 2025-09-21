@@ -3,6 +3,7 @@ package jsvm
 import (
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
+	"strconv"
 	"strings"
 )
 
@@ -11,6 +12,21 @@ type Utils struct {
 
 func NewUtils() *Utils {
 	return &Utils{}
+}
+
+func (u *Utils) Sum(values []string) decimal.Decimal {
+	var sum float64
+
+	for _, value := range values {
+		i, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			logrus.Panicf("%#v 无法转换为float64类型：%s", value, err.Error())
+		}
+
+		sum = sum + i
+	}
+
+	return decimal.NewFromFloat(sum)
 }
 
 func (u *Utils) NewDecimal(value interface{}) decimal.Decimal {
