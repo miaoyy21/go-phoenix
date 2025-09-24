@@ -54,3 +54,69 @@ func TestLoadStock(t *testing.T) {
 	}
 	logrus.Info("更新完成 ...")
 }
+
+/*
+
+function query(){
+    var params = ctx.Params();
+
+    var query = "SELECT TOP 40 T.code AS code, X1.name AS name, SUM(T.holdings) AS sum_holdings, SUM(CASE WHEN x2.holdings IS NULL THEN 0 ELSE x2.holdings END) AS pre_holdings \n\t"+
+        "FROM ST_SETTLEMENT_HOLDINGS T \n\t"+
+        "   INNER JOIN ST_FUND X1 ON X1.code = T.code \n\t"+
+        "   FULL JOIN ST_SETTLEMENT_NPV X2 ON X2.settlement_id = T.settlement_id AND X2.code = X1.code \n\t"+
+        "WHERE T.settlement_id = ? AND X1.name NOT LIKE '%债券%' \n\t"+
+        "GROUP BY T.code, X1.name \n\t"+
+        "ORDER BY SUM(T.holdings) DESC";
+
+    var newValues = sql.Query(query, params["settlement_id"]);
+
+    var total = utils.NewDecimal("15000");
+    var sumHoldings = utils.Sum(_.pluck(newValues,"sum_holdings"));
+
+    // 本次持仓与当前持仓比较，新增持仓或变更持仓
+    var values = _.map(newValues,function(value){
+        var percentage = utils.NewDecimal(value["sum_holdings"]).Div(sumHoldings);
+
+        var holdings = percentage.Mul(total);
+        var preHoldings = utils.NewDecimal(value["pre_holdings"]);
+
+        return _.extend(value,{
+            "percentage":percentage.Mul(utils.NewDecimal(100)).Round(2).StringFixed(2),
+            "holdings":holdings.Round(0).String(),
+            "operation":holdings.GreaterThan(preHoldings) ? "【购买】":"【出售】",
+            "difference": holdings.GreaterThan(preHoldings) ?
+                (holdings.Sub(preHoldings).Round(0).String()):
+                (preHoldings.Sub(holdings).Round(0).String())
+        });
+    });
+
+    query = "SELECT T.code, T.name , T.holdings AS pre_holdings FROM ST_SETTLEMENT_NPV T WHERE T.settlement_id = ?";
+    var oldValues = sql.Query(query, params["settlement_id"]);
+
+    // 本次持仓与当前持仓比较，取消持仓
+    values = _.union(values,_.map(
+        _.reject(oldValues,function(oldValue){
+            return _.some(newValues,function(newValue){
+                return _.isEqual(oldValue["code"],newValue["code"]);
+            })
+        }),function(value){
+            var preHoldings = utils.NewDecimal(value["pre_holdings"]);
+
+            return _.extend(value,{
+                "sum_holdings":"0",
+                "percentage":"0",
+                "holdings":"0",
+                "pre_holdings":preHoldings.Round(2).String(),
+                "operation":"【出售】",
+                "difference":preHoldings.Round(2).String(),
+            });
+        }
+    ));
+
+
+    return _.sortBy(values,"operation");
+}
+
+query();
+
+*/
