@@ -16,15 +16,17 @@ type Sys struct {
 }
 
 func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	var tasks int
+	var tasksMaxActivated sql.NullString
+	var tasksCount int
 
 	// 查询待办事项条数
-	if err := tx.QueryRow("SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", ctx.UserId(), "Executing").Scan(&tasks); err != nil {
+	if err := tx.QueryRow("SELECT MAX(activated_at_) AS activated_at,COUNT(1) AS count FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", ctx.UserId(), "Executing").Scan(&tasksMaxActivated, &tasksCount); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
 
-		tasks = 0
+		tasksMaxActivated = sql.NullString{Valid: true, String: "1900-01-01 01:01:01"}
+		tasksCount = 0
 	}
 
 	// 同时记录用户的活跃时间，用于判断用户是否在线
@@ -32,7 +34,7 @@ func (o *Sys) GetSync(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return map[string]interface{}{"tasks": tasks}, nil
+	return map[string]interface{}{"tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
 }
 
 func (o *Sys) GetDictionary(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
