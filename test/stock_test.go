@@ -59,6 +59,7 @@ func TestLoadStock(t *testing.T) {
 
 function query(){
     var params = ctx.Params();
+    var settlementId = params["settlement_id"]
 
     var query = "SELECT TOP 40 T.code AS code, X1.name AS name, SUM(T.holdings) AS sum_holdings, SUM(CASE WHEN x2.holdings IS NULL THEN 0 ELSE x2.holdings END) AS pre_holdings \n\t"+
         "FROM ST_SETTLEMENT_HOLDINGS T \n\t"+
@@ -68,12 +69,15 @@ function query(){
         "GROUP BY T.code, X1.name \n\t"+
         "ORDER BY SUM(T.holdings) DESC";
 
-    var newValues = sql.Query(query, params["settlement_id"]);
+    var newValues = sql.Query(query, settlementId);
 
-    var total = utils.NewDecimal("15000");
+    // 预设持仓
+    var presetHolding = sql.QueryRow("SELECT preset_holdings FROM ST_SETTLEMENT WHERE id = ?",settlementId)["preset_holdings"];
+
+    var total = utils.NewDecimal(presetHolding);
     var sumHoldings = utils.Sum(_.pluck(newValues,"sum_holdings"));
 
-    // 本次持仓与当前持仓比较，新增持仓或变更持仓
+    // 最新持仓与当前持仓比较，新增持仓或变更持仓
     var values = _.map(newValues,function(value){
         var percentage = utils.NewDecimal(value["sum_holdings"]).Div(sumHoldings);
 
@@ -91,9 +95,9 @@ function query(){
     });
 
     query = "SELECT T.code, T.name , T.holdings AS pre_holdings FROM ST_SETTLEMENT_NPV T WHERE T.settlement_id = ?";
-    var oldValues = sql.Query(query, params["settlement_id"]);
+    var oldValues = sql.Query(query, settlementId);
 
-    // 本次持仓与当前持仓比较，取消持仓
+    // 最新持仓与当前持仓比较，取消持仓
     values = _.union(values,_.map(
         _.reject(oldValues,function(oldValue){
             return _.some(newValues,function(newValue){
