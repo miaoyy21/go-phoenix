@@ -169,18 +169,20 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 		return nil, err
 	}
 
-	var tasks int
+	var tasksMaxActivated sql.NullString
+	var tasksCount int
 
-	query := "SELECT COUNT(1) AS count_ FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?"
-	if err := asql.SelectRow(tx, query, ctx.UserId(), "Executing").Scan(&tasks); err != nil {
+	// 查询待办事项条数
+	if err := tx.QueryRow("SELECT MAX(activated_at_) AS activated_at,COUNT(1) AS count FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", ctx.UserId(), "Executing").Scan(&tasksMaxActivated, &tasksCount); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
 
-		tasks = 0
+		tasksMaxActivated = sql.NullString{Valid: true, String: "1900-01-01 01:01:01"}
+		tasksCount = 0
 	}
 
-	return map[string]interface{}{"menus": menus, "tasks": tasks}, nil
+	return map[string]interface{}{"menus": menus, "tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
 }
 
 func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
