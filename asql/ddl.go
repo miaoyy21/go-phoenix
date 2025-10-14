@@ -68,7 +68,7 @@ func NewDDLBase(tx *sql.Tx, table string, cols []string, present map[string]stri
 func (o *DDLBase) Exists() bool {
 	var id string
 
-	if err := SelectRow(o.tx, fmt.Sprintf("SELECT TOP 1 'X' AS id FROM %s", o.table)).Scan(&id); err != nil {
+	if err := SelectRow(o.tx, fmt.Sprintf("SELECT 'X' AS id FROM %s", o.table)).Scan(&id); err != nil {
 		if err == sql.ErrNoRows {
 			return true
 		}

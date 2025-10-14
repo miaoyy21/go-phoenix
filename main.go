@@ -14,7 +14,7 @@ import (
 
 	//_ "dm"                               // 达梦 驱动
 	_ "github.com/denisenkom/go-mssqldb" // SQL Server 驱动
-	//_ "github.com/go-sql-driver/mysql"   // MySQL 驱动
+	_ "github.com/go-sql-driver/mysql"   // MySQL 驱动
 	"github.com/sirupsen/logrus"
 	"go-phoenix/base"
 	"go-phoenix/handle"

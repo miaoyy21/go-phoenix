@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go-phoenix/base"
+	"log"
 	"strings"
 )
 
@@ -21,7 +22,9 @@ func (o *MySqlDDL) Desc() (cols []string, present map[string]string, err error) 
 		return nil, nil, err
 	}
 
-	present, cols = base.ResAsMapSlice(res, false, "Field", "Type")
+	log.Printf("%#v", res)
+
+	present, cols = base.ResAsMapSlice(res, false, "field", "type")
 	return
 }
 
