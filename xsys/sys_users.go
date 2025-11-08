@@ -34,7 +34,7 @@ func (o *SysUsers) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 				sys_user.sex_, sys_user.is_depart_leader_, sys_user.valid_, 
 				sys_user.classification_, sys_user.telephone_, sys_user.email_, 
 				sys_user.birth_, sys_user.description_, sys_user.signer_ AS signer_, 
-				sys_user.create_at_, sys_user.login_at_
+				sys_user.create_at_, sys_user.login_at_, sys_user.password_at_
 			FROM sys_user 
 				LEFT JOIN sys_depart ON sys_user.depart_id_ = sys_depart.id
 			WHERE sys_user.depart_id_ = ?
@@ -148,7 +148,7 @@ func (o *SysUsers) PostResetPassword(tx *sql.Tx, ctx *handle.Context) (interface
 
 	// 密码加密
 	ePwd := base.Config.AesEncodeString(dPwd)
-	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ? WHERE id = ?", ePwd, id); err != nil {
+	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ?, password_at_ = NULL WHERE id = ?", ePwd, id); err != nil {
 		return nil, err
 	}
 
@@ -156,14 +156,15 @@ func (o *SysUsers) PostResetPassword(tx *sql.Tx, ctx *handle.Context) (interface
 }
 
 func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	userId, departId := ctx.UserId(), ctx.DepartId()
 
 	// 获取用户的部门ID
-	org, err := asql.QueryRelationParents(tx, "sys_depart", ctx.DepartId())
+	org, err := asql.QueryRelationParents(tx, "sys_depart", departId)
 	if err != nil {
 		return nil, err
 	}
 
-	org = append(org, ctx.UserId())
+	org = append(org, userId)
 	menus, err := menusByOrg(tx, org...)
 	if err != nil {
 		return nil, err
@@ -173,7 +174,7 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 	var tasksCount int
 
 	// 查询待办事项条数
-	if err := tx.QueryRow("SELECT MAX(activated_at_) AS activated_at,COUNT(1) AS count FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", ctx.UserId(), "Executing").Scan(&tasksMaxActivated, &tasksCount); err != nil {
+	if err := tx.QueryRow("SELECT MAX(activated_at_) AS activated_at,COUNT(1) AS count FROM wf_flow_task WHERE executor_user_id_ = ? AND status_ = ?", userId, "Executing").Scan(&tasksMaxActivated, &tasksCount); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -182,7 +183,16 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 		tasksCount = 0
 	}
 
-	return map[string]interface{}{"menus": menus, "tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
+	users, err := asql.Select(tx, "SELECT login_at_ AS login_at, password_at_ AS password_at FROM sys_user WHERE id = ?", userId)
+	if err != nil || len(users) != 1 {
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("invalid user result set of size %d", len(users))
+	}
+
+	return map[string]interface{}{"user": users[0], "menus": menus, "tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
 }
 
 func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
@@ -217,7 +227,7 @@ func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interfa
 
 	// 密码加密
 	ePwd := base.Config.AesEncodeString(nPwd)
-	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ? WHERE id = ?", ePwd, ctx.UserId()); err != nil {
+	if err := asql.Update(tx, "UPDATE sys_user SET password_ = ?, password_at_ = ? WHERE id = ?", ePwd, asql.GetNow(), ctx.UserId()); err != nil {
 		return nil, err
 	}
 

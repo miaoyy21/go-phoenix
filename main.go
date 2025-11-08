@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/antonfisher/nested-logrus-formatter"
+	"go-phoenix/asql"
 	"io"
 	"io/fs"
 	"log"
@@ -54,11 +55,16 @@ func main() {
 	}
 	logrus.Info("连接数据库成功 ...")
 
+	// 修改系统表
+	if err := updateSystem(db); err != nil {
+		logrus.Fatalf("updateSystem() Failure :: %s", err.Error())
+	}
+
 	// 加载SQL脚本
 	if err := loadScripts(db, dir); err != nil {
 		logrus.Fatalf("loadScripts() Failure :: %s", err.Error())
 	}
-	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.04.16")
+	log.Printf("当前软件版本为 %s >>>>>>\n", "2025.11.08")
 
 	// 静态文件
 	http.Handle("/", http.FileServer(http.Dir("www")))
@@ -97,6 +103,40 @@ func main() {
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		logrus.Errorf("Listen Failure %s", err.Error())
 	}
+}
+
+func updateSystem(db *sql.DB) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	mapping := map[string]map[string]string{
+		"sys_user": {
+			"password_at_": "DATETIME",
+		},
+	}
+
+	for table, columns := range mapping {
+		for colName, colType := range columns {
+			var nullString sql.NullString
+
+			if err := db.QueryRow(fmt.Sprintf("SELECT %s FROM %s", colName, table)).Scan(&nullString); err != nil {
+				cols, present, err := asql.NewDDLTable(tx, table).Desc()
+				if err != nil {
+					return err
+				}
+
+				cols = append(cols, colName)
+				present[colName] = colType
+				if err := asql.NewDDLTableCol(tx, table, cols, present).Alter(map[string]string{colName: colType}, nil, nil); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return tx.Commit()
 }
 
 func loadScripts(db *sql.DB, dir string) error {
