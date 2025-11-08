@@ -4,6 +4,6 @@
   "port": "8080",
   "aesKey": "fbe666591f898dae5b7b2110b27b0e00",
   "aesIv": "3738f85acef6060516668bec263c94aa",
-  "dbDriver": "mysql",
-  "dbDataSource": "root:root@tcp(localhost:3306)/phoenix?charset=utf8mb4&collation=utf8mb4_general_ci&loc=Local&parseTime=true"
+  "dbDriver": "mssql",
+  "dbDataSource": "sqlserver://sa:NET822005%40%23@47.110.54.24:1433?app+name=JZERP&database=jzerp704&encrypt=disable"
 }

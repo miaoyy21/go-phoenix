@@ -222,7 +222,7 @@ func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interfa
 
 	// 密码长度
 	if len(nPwd) < setting["password_min_length"] || len(nPwd) > setting["password_max_length"] {
-		return nil, fmt.Errorf("新密码长度不满足条件，要求的长度范围[%d,%d]", setting["password_min_length"], setting["password_max_length"])
+		return nil, fmt.Errorf("密码长度必须为%d位至%d位", setting["password_min_length"], setting["password_max_length"])
 	}
 
 	// 密码加密
