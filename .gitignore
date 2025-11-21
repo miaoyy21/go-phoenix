@@ -2,6 +2,7 @@
 .idea/*
 store/*
 scripts/*
+www/*
 
 jzerp_darwin_arm64
 jzerp_linux_386
