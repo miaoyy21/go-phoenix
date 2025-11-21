@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"go-phoenix/asql"
+	"go-phoenix/base"
 	"go-phoenix/handle"
 	"go-phoenix/xwf/mdg"
 	"strings"
@@ -32,6 +33,47 @@ func (r *Diagrams) Get(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
 	}
 
 	return asql.Select(tx, query, args...)
+}
+
+func (r *Diagrams) GetPublishPermission(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	userId, departId := ctx.UserId(), ctx.DepartId()
+
+	// 获取用户的部门ID
+	org, err := asql.QueryRelationParents(tx, "sys_depart", departId)
+	if err != nil {
+		return nil, err
+	}
+
+	org = append(org, userId)
+
+	// 查询用户和所有上级部门的权限
+	query := fmt.Sprintf("SELECT role_id_ FROM sys_organization_role WHERE organization_id_ IN (?%s)", strings.Repeat(", ?", len(org)-1))
+	userRoles, err := asql.Select(tx, query, org...)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(userRoles) < 1 {
+		return make([]map[string]string, 0), nil
+	}
+
+	useRoles := base.ResAsSliceString(userRoles, "role_id_")
+
+	roles := make([]interface{}, 0, len(userRoles))
+	for _, userRole := range useRoles {
+		roles = append(roles, userRole)
+	}
+	query = fmt.Sprintf(`
+		SELECT t1.id AS id, t1.diagram_id_, 
+			t1.diagram_code_, t1.diagram_name_, 
+			t1.keyword_, t1.icon_, t1.description_ 
+		FROM wf_options_diagram t1
+			INNER JOIN sys_diagram_role t2 ON t2.diagram_id_ = t1.diagram_id_
+		WHERE t2.role_id_ IN (?%s)
+		ORDER BY t1.order_ ASC
+	`, strings.Repeat(", ?", len(roles)-1))
+
+	return asql.Select(tx, query, roles...)
 }
 
 func (r *Diagrams) GetPublish(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {

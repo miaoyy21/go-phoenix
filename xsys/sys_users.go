@@ -7,6 +7,7 @@ import (
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
+	"log"
 	"strings"
 	"time"
 )
@@ -193,6 +194,29 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 	}
 
 	return map[string]interface{}{"user": users[0], "menus": menus, "tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
+}
+
+func (o *SysUsers) GetPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
+	accountId := ctx.FormValue("account_id_")
+
+	var userCode, userName, password string
+
+	if err := asql.SelectRow(tx, "SELECT user_code_, user_name_, password_ FROM sys_user WHERE account_id_ = ?", accountId).Scan(&userCode, &userName, &password); err != nil {
+		return nil, err
+	}
+
+	plainPassword, err := base.Config.AesDecodeString(password)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	return map[string]interface{}{
+		"登录名":  accountId,
+		"工号":   userCode,
+		"姓名":   userName,
+		"登录密码": plainPassword,
+		"加密密码": password,
+	}, nil
 }
 
 func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
