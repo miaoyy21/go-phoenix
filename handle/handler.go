@@ -147,6 +147,8 @@ func handlerError(op *Operate, w http.ResponseWriter, msg error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 
+	debug.PrintStack()
+
 	// 记录错误日志
 	_, file, line, _ := runtime.Caller(1)
 	logrus.Error(fmt.Errorf("%s:%d %s", strings.Split(file, "/go-phoenix/")[1], line, msg.Error()))

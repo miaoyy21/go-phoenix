@@ -7,7 +7,6 @@ import (
 	"go-phoenix/asql"
 	"go-phoenix/base"
 	"go-phoenix/handle"
-	"log"
 	"strings"
 	"time"
 )
@@ -184,7 +183,7 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 		tasksCount = 0
 	}
 
-	users, err := asql.Select(tx, "SELECT login_at_ AS login_at, password_at_ AS password_at FROM sys_user WHERE id = ?", userId)
+	users, err := asql.Select(tx, "SELECT login_at_ AS login_at, (CASE WHEN account_id_ = 'admin' THEN login_at_ ELSE password_at_ END) AS password_at FROM sys_user WHERE id = ?", userId)
 	if err != nil || len(users) != 1 {
 		if err != nil {
 			return nil, err
@@ -194,29 +193,6 @@ func (o *SysUsers) GetLoginByToken(tx *sql.Tx, ctx *handle.Context) (interface{}
 	}
 
 	return map[string]interface{}{"user": users[0], "menus": menus, "tasks_max_activated": tasksMaxActivated.String, "tasks_count": tasksCount}, nil
-}
-
-func (o *SysUsers) GetPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
-	accountId := ctx.FormValue("account_id_")
-
-	var userCode, userName, password string
-
-	if err := asql.SelectRow(tx, "SELECT user_code_, user_name_, password_ FROM sys_user WHERE account_id_ = ?", accountId).Scan(&userCode, &userName, &password); err != nil {
-		return nil, err
-	}
-
-	plainPassword, err := base.Config.AesDecodeString(password)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	return map[string]interface{}{
-		"登录名":  accountId,
-		"工号":   userCode,
-		"姓名":   userName,
-		"登录密码": plainPassword,
-		"加密密码": password,
-	}, nil
 }
 
 func (o *SysUsers) PostChangedPassword(tx *sql.Tx, ctx *handle.Context) (interface{}, error) {
